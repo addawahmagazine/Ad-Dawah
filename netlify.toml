@@ -1,0 +1,35 @@
+# আদ দাওয়াহ — Netlify কনফিগারেশন
+# কোনো বিল্ড স্টেপ নেই; ফোল্ডারটি সরাসরি পাবলিশ হয়।
+
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/issues/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+# কনটেন্ট ফাইল সবসময় টাটকা আসবে (CMS-এ সেভ করার পরপরই)
+[[headers]]
+  for = "/content/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"

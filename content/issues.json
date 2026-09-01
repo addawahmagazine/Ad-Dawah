@@ -1,0 +1,56 @@
+{
+  "issues": [
+    {
+      "id": "y1n1",
+      "label": "বর্ষ ১, সংখ্যা ১",
+      "hijri": "সফর ১৪৪৮",
+      "greg": "আগস্ট ২০২৬",
+      "published": true,
+      "pages": 96,
+      "pdf": "issues/ad-dawah-y1n1.pdf",
+      "tagline": "সূচনা সংখ্যা",
+      "cover": "",
+      "bg": "#064E3B",
+      "accent": "#D97706"
+    },
+    {
+      "id": "y1n2",
+      "label": "বর্ষ ১, সংখ্যা ২",
+      "hijri": "জুমাদাল ঊলা ১৪৪৮",
+      "greg": "নভেম্বর ২০২৬",
+      "published": false,
+      "pages": 0,
+      "pdf": "",
+      "tagline": "প্রস্তুত হচ্ছে",
+      "cover": "",
+      "bg": "#0F5132",
+      "accent": "#D97706"
+    },
+    {
+      "id": "y1n3",
+      "label": "বর্ষ ১, সংখ্যা ৩",
+      "hijri": "শা‌বান ১৪৪৮",
+      "greg": "ফেব্রুয়ারি ২০২৭",
+      "published": false,
+      "pages": 0,
+      "pdf": "",
+      "tagline": "প্রস্তুত হচ্ছে",
+      "cover": "",
+      "bg": "#14664A",
+      "accent": "#D97706"
+    },
+    {
+      "id": "y1n4",
+      "label": "বর্ষ ১, সংখ্যা ৪",
+      "hijri": "যিলক্বদ ১৪৪৮",
+      "greg": "মে ২০২৭",
+      "published": false,
+      "pages": 0,
+      "pdf": "",
+      "tagline": "প্রস্তুত হচ্ছে",
+      "cover": "",
+      "bg": "#0B3F2C",
+      "accent": "#D97706"
+    }
+  ]
+}

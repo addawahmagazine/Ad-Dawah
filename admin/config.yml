@@ -1,0 +1,247 @@
+# =========================================================================
+#  আদ দাওয়াহ — অ্যাডমিন প্যানেল কনফিগারেশন
+#
+#  ⚠️  ডিপ্লয়ের আগে নিচের "repo" লাইনে আপনার গিটহাব ইউজারনেম ও
+#      রিপোজিটরির নাম বসান। উদাহরণ:  repo: abdullah/ad-dawah
+# =========================================================================
+
+backend:
+  name: github
+  repo: USERNAME/REPO-NAME
+  branch: main
+  commit_messages:
+    create: 'নতুন যোগ: {{collection}} “{{slug}}”'
+    update: 'সম্পাদনা: {{collection}} “{{slug}}”'
+    delete: 'মুছে ফেলা: {{collection}} “{{slug}}”'
+    uploadMedia: 'ফাইল আপলোড: {{path}}'
+    deleteMedia: 'ফাইল মুছে ফেলা: {{path}}'
+
+# লোকালি পরীক্ষা করতে চাইলে (npx decap-server চালিয়ে)
+local_backend: true
+
+media_folder: "uploads"
+public_folder: "/uploads"
+
+publish_mode: simple
+
+collections:
+  # ---------------------------------------------------------------- লেখা
+  - name: "articles"
+    label: "লেখাসমূহ"
+    files:
+      - name: "articles"
+        label: "সব লেখা"
+        file: "content/articles.json"
+        description: "নতুন লেখা যোগ করতে নিচে “নতুন লেখা” বোতামে চাপুন। উপরে থাকা লেখাগুলো সাইটে আগে দেখাবে।"
+        fields:
+          - name: "articles"
+            label: "লেখা"
+            label_singular: "নতুন লেখা"
+            widget: "list"
+            summary: "{{fields.title}}"
+            collapsed: true
+            fields:
+              - { name: "title", label: "শিরোনাম", widget: "string" }
+              - { name: "id", label: "লিংক-নাম (ইংরেজি অক্ষরে, অনন্য)", widget: "string",
+                  hint: "যেমন: khatme-nubuwat। বাংলা অক্ষর বা ফাঁকা জায়গা দেবেন না, শব্দের মাঝে হাইফেন দিন।",
+                  pattern: ['^[a-z0-9-]+$', 'কেবল ছোট হাতের ইংরেজি অক্ষর, সংখ্যা ও হাইফেন ব্যবহার করুন'] }
+              - { name: "excerpt", label: "সংক্ষিপ্তসার", widget: "text",
+                  hint: "কার্ডে যে দুই-তিন লাইন দেখাবে।" }
+              - name: "cat"
+                label: "বিভাগ"
+                widget: "relation"
+                collection: "taxonomy"
+                file: "categories"
+                value_field: "categories.*.id"
+                display_fields: ["categories.*.name"]
+                search_fields: ["categories.*.name"]
+              - name: "author"
+                label: "লেখক"
+                widget: "relation"
+                collection: "taxonomy"
+                file: "authors"
+                value_field: "authors.*.id"
+                display_fields: ["authors.*.name"]
+                search_fields: ["authors.*.name"]
+              - name: "issue"
+                label: "কোন সংখ্যায়"
+                widget: "relation"
+                collection: "taxonomy"
+                file: "issues"
+                value_field: "issues.*.id"
+                display_fields: ["issues.*.label"]
+                search_fields: ["issues.*.label"]
+              - { name: "read", label: "পড়ার সময় (মিনিট)", widget: "number",
+                  value_type: "int", min: 1, max: 90, default: 10 }
+              - { name: "lead", label: "হোমপেজের প্রধান লেখা", widget: "boolean", default: false,
+                  hint: "প্রতি সংখ্যায় একটিমাত্র লেখায় এটি চালু রাখুন।" }
+              - name: "body"
+                label: "মূল লেখা"
+                label_singular: "নতুন অংশ"
+                widget: "list"
+                types:
+                  - name: "para"
+                    label: "অনুচ্ছেদ"
+                    summary: "{{fields.text}}"
+                    fields:
+                      - { name: "text", label: "লেখা", widget: "text" }
+                  - name: "heading"
+                    label: "উপশিরোনাম"
+                    summary: "{{fields.text}}"
+                    fields:
+                      - { name: "text", label: "উপশিরোনাম", widget: "string" }
+                  - name: "refute"
+                    label: "খণ্ডন (দাবি ও জবাব)"
+                    summary: "খণ্ডন — {{fields.claim}}"
+                    fields:
+                      - { name: "claim", label: "দাবি", widget: "text",
+                          hint: "প্রতিপক্ষের বক্তব্য যতটা সম্ভব হুবহু লিখুন।" }
+                      - { name: "answer", label: "জবাব", widget: "text",
+                          hint: "কুরআন, সুন্নাহ ও স্বীকৃত উৎস থেকে দলিলসহ।" }
+                  - name: "quote"
+                    label: "উদ্ধৃতি (আয়াত / হাদীস)"
+                    summary: "{{fields.text}}"
+                    fields:
+                      - { name: "text", label: "উদ্ধৃতি", widget: "text" }
+                      - { name: "source", label: "সূত্র", widget: "string",
+                          hint: "যেমন: সূরা আল-বাকারা, আয়াত ২৫৬" }
+
+  # ------------------------------------------------- সংখ্যা, লেখক, বিভাগ
+  - name: "taxonomy"
+    label: "সংখ্যা ও লেখক"
+    files:
+      - name: "issues"
+        label: "সংখ্যাসমূহ"
+        file: "content/issues.json"
+        description: "নতুন সংখ্যা এখানে যোগ করুন। “প্রকাশিত” চালু করলে সেটি হোমপেজের প্রধান সংখ্যা হবে।"
+        fields:
+          - name: "issues"
+            label: "সংখ্যা"
+            label_singular: "নতুন সংখ্যা"
+            widget: "list"
+            summary: "{{fields.label}} — {{fields.greg}}"
+            collapsed: true
+            fields:
+              - { name: "label", label: "সংখ্যার নাম", widget: "string", hint: "যেমন: বর্ষ ১, সংখ্যা ২" }
+              - { name: "id", label: "লিংক-নাম (ইংরেজি)", widget: "string", hint: "যেমন: y1n2",
+                  pattern: ['^[a-z0-9-]+$', 'কেবল ছোট হাতের ইংরেজি অক্ষর, সংখ্যা ও হাইফেন'] }
+              - { name: "hijri", label: "হিজরি তারিখ", widget: "string", hint: "যেমন: জুমাদাল ঊলা ১৪৪৮" }
+              - { name: "greg", label: "ইংরেজি তারিখ", widget: "string", hint: "যেমন: নভেম্বর ২০২৬" }
+              - { name: "published", label: "প্রকাশিত", widget: "boolean", default: false }
+              - { name: "pages", label: "পৃষ্ঠা সংখ্যা", widget: "number", value_type: "int", default: 96, required: false }
+              - { name: "pdf", label: "পিডিএফ ফাইল", widget: "file", required: false,
+                  hint: "সংখ্যার পূর্ণ পিডিএফ আপলোড করুন।" }
+              - { name: "cover", label: "প্রচ্ছদের ছবি", widget: "image", required: false,
+                  hint: "না দিলে স্বয়ংক্রিয়ভাবে একটি প্রচ্ছদ তৈরি হবে।" }
+              - { name: "tagline", label: "ছোট নোট", widget: "string", required: false,
+                  default: "প্রস্তুত হচ্ছে", hint: "অপ্রকাশিত সংখ্যার বোতামে এটি দেখাবে।" }
+              - { name: "bg", label: "প্রচ্ছদের রঙ", widget: "color", default: "#064E3B", required: false }
+              - { name: "accent", label: "প্রচ্ছদের সোনালি রঙ", widget: "color", default: "#D97706", required: false }
+
+      - name: "authors"
+        label: "লেখকবৃন্দ"
+        file: "content/authors.json"
+        fields:
+          - name: "authors"
+            label: "লেখক"
+            label_singular: "নতুন লেখক"
+            widget: "list"
+            summary: "{{fields.name}}"
+            collapsed: true
+            fields:
+              - { name: "name", label: "নাম", widget: "string" }
+              - { name: "id", label: "লিংক-নাম (ইংরেজি)", widget: "string",
+                  pattern: ['^[a-z0-9-]+$', 'কেবল ছোট হাতের ইংরেজি অক্ষর, সংখ্যা ও হাইফেন'] }
+              - { name: "role", label: "পদ / পরিচয়", widget: "string", hint: "যেমন: নিয়মিত লেখক" }
+              - { name: "bio", label: "সংক্ষিপ্ত পরিচিতি", widget: "text" }
+
+      - name: "categories"
+        label: "বিভাগসমূহ"
+        file: "content/categories.json"
+        description: "বিভাগ যোগ বা বদল করলে হোমপেজের ছাঁকনি ও কার্ডের রঙ সঙ্গে সঙ্গে বদলাবে।"
+        fields:
+          - name: "categories"
+            label: "বিভাগ"
+            label_singular: "নতুন বিভাগ"
+            widget: "list"
+            summary: "{{fields.name}}"
+            collapsed: true
+            fields:
+              - { name: "name", label: "বিভাগের নাম", widget: "string" }
+              - { name: "id", label: "লিংক-নাম (ইংরেজি)", widget: "string",
+                  pattern: ['^[a-z0-9-]+$', 'কেবল ছোট হাতের ইংরেজি অক্ষর, সংখ্যা ও হাইফেন'] }
+              - { name: "desc", label: "পরিচিতি", widget: "text" }
+              - { name: "color", label: "রঙ", widget: "color", default: "#0F5132" }
+              - { name: "icon", label: "আইকনের SVG path", widget: "string", required: false,
+                  default: "M12 3l7 4v5c0 4.4-3 8.3-7 9-4-.7-7-4.6-7-9V7l7-4z",
+                  hint: "কারিগরি ঘর — না বুঝলে যা আছে তা-ই থাক।" }
+
+  # ---------------------------------------------- ইনফোগ্রাফিক, মিডিয়া, প্রশ্নোত্তর
+  - name: "media"
+    label: "কার্ড ও মিডিয়া"
+    files:
+      - name: "media"
+        label: "দাওয়াহ কার্ড, অডিও-ভিডিও, প্রশ্নোত্তর"
+        file: "content/media.json"
+        fields:
+          - name: "infographics"
+            label: "দাওয়াহ কার্ড"
+            label_singular: "নতুন কার্ড"
+            widget: "list"
+            summary: "{{fields.title}}"
+            collapsed: true
+            fields:
+              - { name: "title", label: "কার্ডের মূল কথা", widget: "text" }
+              - { name: "sub", label: "নিচের ছোট লাইন", widget: "string" }
+              - { name: "from", label: "রঙ (উপরে)", widget: "color", default: "#064E3B" }
+              - { name: "to", label: "রঙ (নিচে)", widget: "color", default: "#0F5132" }
+          - name: "media"
+            label: "অডিও ও ভিডিও"
+            label_singular: "নতুন আইটেম"
+            widget: "list"
+            summary: "{{fields.title}}"
+            collapsed: true
+            fields:
+              - { name: "title", label: "শিরোনাম", widget: "string" }
+              - { name: "meta", label: "ধরন ও উৎস", widget: "string", hint: "যেমন: ভিডিও • সম্পাদকীয় বৈঠক" }
+              - { name: "length", label: "সময়", widget: "string", hint: "যেমন: ৪১ মিনিট" }
+              - { name: "link", label: "ইউটিউব / অডিও লিংক", widget: "string", required: false }
+          - name: "qa"
+            label: "নমুনা প্রশ্নোত্তর"
+            label_singular: "নতুন প্রশ্নোত্তর"
+            widget: "list"
+            summary: "{{fields.q}}"
+            collapsed: true
+            fields:
+              - { name: "q", label: "প্রশ্ন", widget: "text" }
+              - { name: "a", label: "সংক্ষিপ্ত জবাব", widget: "text" }
+
+  # ------------------------------------------------------------- সেটিংস
+  - name: "settings"
+    label: "সাইট সেটিংস"
+    files:
+      - name: "site"
+        label: "যোগাযোগ, মূল্য ও পেমেন্ট"
+        file: "content/site.json"
+        fields:
+          - { name: "facebook", label: "ফেসবুক পেজের লিংক", widget: "string" }
+          - { name: "youtube", label: "ইউটিউব চ্যানেলের লিংক", widget: "string" }
+          - { name: "telegram", label: "টেলিগ্রাম চ্যানেলের লিংক", widget: "string" }
+          - { name: "email", label: "ইমেইল", widget: "string" }
+          - { name: "phone", label: "ফোন", widget: "string" }
+          - { name: "address", label: "ঠিকানা", widget: "text" }
+          - { name: "price_single", label: "এক সংখ্যার দাম (৳)", widget: "number", value_type: "int" }
+          - { name: "price_yearly", label: "বার্ষিক গ্রাহক ফি (৳)", widget: "number", value_type: "int" }
+          - { name: "price_bundle", label: "১০ কপি বান্ডিলের দাম (৳)", widget: "number", value_type: "int" }
+          - { name: "order_note", label: "অর্ডার ব্যানারের লেখা", widget: "text" }
+          - { name: "donate_note", label: "অনুদান সেকশনের লেখা", widget: "text" }
+          - name: "payments"
+            label: "পেমেন্ট নম্বর"
+            label_singular: "নতুন মাধ্যম"
+            widget: "list"
+            summary: "{{fields.title}} — {{fields.number}}"
+            fields:
+              - { name: "name", label: "মাধ্যমের নাম (ইংরেজি)", widget: "string", hint: "যেমন: bKash" }
+              - { name: "title", label: "বাংলায় বিবরণ", widget: "string", hint: "যেমন: বিকাশ (পারসোনাল)" }
+              - { name: "number", label: "নম্বর", widget: "string" }
+              - { name: "color", label: "রঙ", widget: "color", default: "#E2136E" }
