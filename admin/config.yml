@@ -7,7 +7,7 @@
 
 backend:
   name: github
-  repo: USERNAME/REPO-NAME
+  repo: raiyanrafique/Ad-Dawah
   branch: main
   commit_messages:
     create: 'নতুন যোগ: {{collection}} “{{slug}}”'
