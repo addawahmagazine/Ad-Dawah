@@ -151,6 +151,10 @@
       <button class="iconbtn" id="searchToggle" aria-label="খুঁজুন" aria-expanded="false">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       </button>
+      <button class="iconbtn" id="accountBtn" aria-label="অ্যাকাউন্ট" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+        <span class="iconbtn__dot" hidden></span>
+      </button>
       <button class="iconbtn" id="themeToggle" aria-label="রাতের মোড চালু করুন">
         <svg class="ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
         <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
@@ -487,6 +491,7 @@
   <div class="wrap foot__bar">
     <p>© <span class="bn-num" id="yearNow">2026</span> আদ দাওয়াহ। সর্বস্বত্ব সংরক্ষিত।</p>
     <p>লেখা পুনঃপ্রকাশে সূত্র উল্লেখ করুন।</p>
+    <p class="stats" id="visitStats" hidden></p>
   </div>
 </footer>
 
@@ -542,6 +547,8 @@
 <!-- shared SVG symbols -->
 
 
+<script src="assets/config.js"></script>
+<script type="module" src="assets/auth.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

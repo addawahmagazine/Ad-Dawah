@@ -310,6 +310,10 @@ function renderAds(){
 /* =========================================================================
    লেখার গ্রিড
    ========================================================================= */
+const viewLabel = id => {
+  const n = window.AD?.enabled ? window.AD.views(id) : 0;
+  return n > 0 ? ` • ${bn(n)} বার পঠিত` : '';
+};
 const state = { cat:'all', issue:'all', author:'all', q:'', sort:'latest' };
 
 function articleCard(a){
@@ -326,7 +330,7 @@ function articleCard(a){
       <h3 class="card__h">${esc(a.title)}</h3>
       <p class="card__x">${esc(a.excerpt)}</p>
       <div class="card__foot">
-        <span>${esc(authorById(a.author).name)} • ${d || bn(a.read) + ' মিনিট'}</span>
+        <span>${esc(authorById(a.author).name)} • ${d || bn(a.read) + ' মিনিট'}${viewLabel(a.id)}</span>
         <span class="card__share">
           <button class="shr" data-share="whatsapp" data-id="${a.id}" aria-label="হোয়াটসঅ্যাপে শেয়ার">${shareIcon('whatsapp')}</button>
           <button class="shr" data-share="facebook" data-id="${a.id}" aria-label="ফেসবুকে শেয়ার">${shareIcon('facebook')}</button>
@@ -351,7 +355,9 @@ function matches(a){
 
 function sortArticles(list){
   const out = [...list];
-  if (state.sort === 'az'){
+  if (state.sort === 'popular'){
+    out.sort((x, y) => (window.AD?.views(y.id) || 0) - (window.AD?.views(x.id) || 0));
+  } else if (state.sort === 'az'){
     out.sort((x, y) => x.title.localeCompare(y.title, 'bn'));
   } else {
     const t = a => { const d = parseDate(a.date); return d ? d.getTime() : null; };
@@ -394,6 +400,9 @@ function renderFilters(){
   $('#issueFilter').onchange  = e => { state.issue  = e.target.value; renderArticles(); };
   $('#authorFilter').onchange = e => { state.author = e.target.value; renderArticles(); };
   $('#sortFilter').onchange   = e => { state.sort   = e.target.value; renderArticles(); };
+  if (window.AD?.enabled && !$('#sortFilter').querySelector('[value="popular"]')){
+    $('#sortFilter').insertAdjacentHTML('afterbegin', '<option value="popular">সবচেয়ে বেশি পঠিত</option>');
+  }
 }
 
 /* =========================================================================
@@ -587,6 +596,7 @@ function openArticle(id){
     </div>
     <div class="art__body">${bodyHTML(a.body)}</div>
     <div class="art__share">
+      ${window.AD?.enabled ? `<button class="sbtn sbtn--mark${window.AD.isBookmarked(a.id) ? ' is-on' : ''}" data-bookmark="${a.id}">${bookmarkIcon(a.id)}<span>${window.AD.isBookmarked(a.id) ? 'সংরক্ষিত' : 'সংরক্ষণ করুন'}</span></button>` : ''}
       <span>শেয়ার করুন</span>
       <button class="sbtn" data-share="whatsapp" data-id="${a.id}">${shareIcon('whatsapp')} হোয়াটসঅ্যাপ</button>
       <button class="sbtn" data-share="facebook" data-id="${a.id}">${shareIcon('facebook')} ফেসবুক</button>
@@ -594,6 +604,14 @@ function openArticle(id){
       <button class="sbtn" data-share="copy" data-id="${a.id}">${shareIcon('copy')} লিংক কপি</button>
     </div>`);
   history.replaceState(null, '', `#/lekha/${a.id}`);
+  window.AD?.bumpView?.(a.id);
+}
+
+const BOOKMARK_ON  = 'M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z';
+const BOOKMARK_OFF = 'M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1zm1 2v14.3l5-2.9 5 2.9V5H7z';
+function bookmarkIcon(id){
+  const on = window.AD?.isBookmarked(id);
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${on ? BOOKMARK_ON : BOOKMARK_OFF}"/></svg>`;
 }
 
 /* ---- পিডিএফ প্রিভিউ ---- */
@@ -694,6 +712,116 @@ function openOrder(issue){
     </form>`);
   wireForm($('#orderForm'), $('#orderFormNote'),
     'অর্ডার পেয়েছি। এক কর্মদিবসের মধ্যে ফোনে নিশ্চিত করা হবে, ইনশাআল্লাহ।');
+}
+
+
+/* =========================================================================
+   অ্যাকাউন্ট — লগইন, নিবন্ধন, সংরক্ষিত লেখা, নিজের প্রশ্ন
+   ========================================================================= */
+function authForms(mode){
+  const login = mode !== 'signup';
+  return `
+    <h2 class="art__h" id="modalTitle">${login ? 'লগইন করুন' : 'নতুন অ্যাকাউন্ট'}</h2>
+    <p class="art__meta">লগইন করলে পছন্দের লেখা সংরক্ষণ করতে পারবেন, আর নিজের পাঠানো প্রশ্নের জবাব এক জায়গায় দেখতে পাবেন।</p>
+    <form class="ordform" id="authForm">
+      ${login ? '' : `<label class="fld"><span>আপনার নাম</span><input name="name" required placeholder="পূর্ণ নাম"></label>`}
+      <label class="fld"><span>ইমেইল</span><input name="email" type="email" required placeholder="you@example.com"></label>
+      <label class="fld"><span>পাসওয়ার্ড</span><input name="password" type="password" required minlength="6" placeholder="অন্তত ৬ অক্ষর"></label>
+      <button class="btn btn--green btn--lg" type="submit">${login ? 'লগইন' : 'নিবন্ধন করুন'}</button>
+      <p class="form__note" id="authNote" role="status"></p>
+    </form>
+    <div class="authswitch">
+      ${login
+        ? `<button data-auth="signup">অ্যাকাউন্ট নেই? নিবন্ধন করুন</button>
+           <button data-auth="reset">পাসওয়ার্ড ভুলে গেছেন?</button>`
+        : `<button data-auth="login">অ্যাকাউন্ট আছে? লগইন করুন</button>`}
+    </div>`;
+}
+
+function openAuth(mode){
+  openModal(authForms(mode));
+  const form = $('#authForm'), note = $('#authNote');
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(form));
+    note.textContent = 'অপেক্ষা করুন…';
+    try{
+      if (mode === 'signup'){
+        await AD.signUp(f.email, f.password, f.name);
+        note.textContent = 'নিবন্ধন হয়েছে। ইমেইলে পাঠানো লিংকে ক্লিক করে অ্যাকাউন্টটি নিশ্চিত করুন।';
+      } else {
+        await AD.signIn(f.email, f.password);
+        closeModal();
+        toast('স্বাগতম, ' + AD.userName());
+      }
+    }catch(err){
+      note.textContent = authError(err);
+      note.style.color = 'var(--accent)';
+    }
+  });
+}
+
+function authError(err){
+  const m = String(err?.message || '');
+  if (/Invalid login/i.test(m))      return 'ইমেইল বা পাসওয়ার্ড মিলছে না।';
+  if (/already registered/i.test(m)) return 'এই ইমেইলে অ্যাকাউন্ট আছে। লগইন করে দেখুন।';
+  if (/Email not confirmed/i.test(m))return 'ইমেইলে পাঠানো লিংকে ক্লিক করে অ্যাকাউন্টটি নিশ্চিত করুন।';
+  if (/at least 6/i.test(m))         return 'পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।';
+  if (/rate limit/i.test(m))         return 'কিছুক্ষণ পর আবার চেষ্টা করুন।';
+  return 'সমস্যা হয়েছে: ' + m;
+}
+
+async function openAccount(){
+  openModal(`
+    <h2 class="art__h" id="modalTitle">${esc(AD.userName())}</h2>
+    <p class="art__meta">${esc(AD.user?.email || '')}</p>
+    <div class="acct">
+      <h3 class="acct__h">সংরক্ষিত লেখা</h3>
+      <div id="acctMarks"><p class="acct__empty">লোড হচ্ছে…</p></div>
+      <h3 class="acct__h">আপনার প্রশ্ন</h3>
+      <div id="acctQs"><p class="acct__empty">লোড হচ্ছে…</p></div>
+      <button class="btn btn--line" id="signOutBtn">লগআউট</button>
+    </div>`);
+
+  $('#signOutBtn').onclick = async () => { await AD.signOut(); closeModal(); toast('লগআউট হয়েছে'); };
+
+  const marks = [...AD.bookmarks].map(id => ARTICLES.find(a => a.id === id)).filter(Boolean);
+  $('#acctMarks').innerHTML = marks.length
+    ? marks.map(a => `<button class="acctitem" data-open="${a.id}">
+        <b>${esc(a.title)}</b><span>${esc(catById(a.cat).name)} • ${esc(authorById(a.author).name)}</span></button>`).join('')
+    : '<p class="acct__empty">এখনও কোনো লেখা সংরক্ষণ করেননি। যেকোনো লেখা খুলে “সংরক্ষণ করুন” চাপলেই এখানে জমা হবে।</p>';
+
+  try{
+    const qs = await AD.myQuestions();
+    $('#acctQs').innerHTML = qs.length
+      ? qs.map(q => `<div class="qaitem">
+          <p class="q">${esc(q.body)}</p>
+          <p class="a">${q.answered && q.answer ? esc(q.answer) : 'জবাব প্রস্তুত হচ্ছে।'}</p>
+          <p class="acct__date">${bnDate(q.created_at)}</p>
+        </div>`).join('')
+      : '<p class="acct__empty">এখনও কোনো প্রশ্ন পাঠাননি।</p>';
+  }catch(e){
+    $('#acctQs').innerHTML = '<p class="acct__empty">প্রশ্নগুলো আনা গেল না।</p>';
+  }
+}
+
+function renderAccountUI(){
+  const btn = $('#accountBtn');
+  if (!window.AD?.enabled){ btn.hidden = true; return; }
+  btn.hidden = false;
+  btn.querySelector('.iconbtn__dot').hidden = !AD.user;
+  btn.setAttribute('aria-label', AD.user ? 'আমার অ্যাকাউন্ট' : 'লগইন করুন');
+  btn.onclick = () => AD.user ? openAccount() : openAuth('login');
+}
+
+function renderVisitStats(){
+  const el = $('#visitStats');
+  if (!window.AD?.enabled || !AD.visits.total){ el.hidden = true; return; }
+  const bits = [`আজ ${bn(AD.visits.today)} জন পড়েছেন`];
+  if (AD.visits.online > 0) bits.push(`এখন অনলাইনে ${bn(AD.visits.online)} জন`);
+  bits.push(`মোট ${bn(AD.visits.total)}`);
+  el.textContent = bits.join(' • ');
+  el.hidden = false;
 }
 
 /* =========================================================================
@@ -865,6 +993,30 @@ function wireUI(){
     const cp = e.target.closest('[data-copy]');
     if (cp){ navigator.clipboard?.writeText(cp.dataset.copy).then(() => toast('নম্বর কপি হয়েছে')); return; }
 
+    const bm = e.target.closest('[data-bookmark]');
+    if (bm){
+      if (!AD.user){ openAuth('login'); return; }
+      const id = bm.dataset.bookmark;
+      AD.toggleBookmark(id).then(on => {
+        bm.innerHTML = bookmarkIcon(id) + `<span>${on ? 'সংরক্ষিত' : 'সংরক্ষণ করুন'}</span>`;
+        bm.classList.toggle('is-on', on);
+        toast(on ? 'সংরক্ষণ করা হয়েছে' : 'সংরক্ষণ বাতিল হয়েছে');
+      }).catch(() => toast('সংরক্ষণ করা গেল না'));
+      return;
+    }
+
+    const sw = e.target.closest('[data-auth]');
+    if (sw){
+      const m = sw.dataset.auth;
+      if (m === 'reset'){
+        const email = prompt('যে ইমেইলে অ্যাকাউন্ট খুলেছেন সেটি লিখুন:');
+        if (email) AD.resetPassword(email)
+          .then(() => toast('ইমেইলে পাসওয়ার্ড বদলানোর লিংক পাঠানো হয়েছে'))
+          .catch(() => toast('লিংক পাঠানো গেল না'));
+      } else openAuth(m);
+      return;
+    }
+
     if (e.target.closest('[data-close]')) closeModal();
 
     if (e.target.closest('.nav__link[href^="#"], .nav__sub a, .foot__links a, [data-goto]')){
@@ -882,7 +1034,14 @@ function wireUI(){
   });
 
   $('#orderOpen').onclick = () => openOrder(null);
-  wireForm($('#qaForm'),    $('#qaNote'),    'প্রশ্নটি পৌঁছেছে। জবাব প্রস্তুত হলে ইমেইলে জানানো হবে, ইনশাআল্লাহ।');
+  const qaForm = $('#qaForm');
+  qaForm?.addEventListener('submit', () => {
+    if (!window.AD?.enabled) return;
+    const f = Object.fromEntries(new FormData(qaForm));
+    AD.submitQuestion({ name:f.nam, email:f.email, topic:f.bishoy, body:f.proshno })
+      .catch(err => console.error('প্রশ্ন সংরক্ষণ ব্যর্থ:', err));
+  });
+  wireForm(qaForm, $('#qaNote'), 'প্রশ্নটি পৌঁছেছে। জবাব প্রস্তুত হলে ইমেইলে জানানো হবে, ইনশাআল্লাহ।');
   wireForm($('#subForm'),   $('#subNote'),   'যুক্ত হয়েছেন। নতুন সংখ্যার খবর ইমেইলে পাবেন।');
   wireForm($('#lekhaForm'), $('#lekhaNote'), 'লেখাটি পৌঁছেছে। সম্পাদনা পরিষদ যাচাই করে ইমেইলে জানাবে, ইনশাআল্লাহ।');
 
@@ -903,12 +1062,20 @@ function wireUI(){
   toTop.onclick = () => scrollTo({ top:0, behavior:'smooth' });
 }
 
+let started = false;
 async function init(){
+  if (started) return;          // দুবার চালু হওয়া ঠেকাতে
+  started = true;
   renderDates();
   wireUI();
   try{
     await loadContent();
     renderAll();
+    if (window.AD){
+      await AD.ready;
+      AD.onChange(() => { renderAccountUI(); renderVisitStats(); renderArticles(); });
+    }
+
     const m = location.hash.match(/^#\/lekha\/(.+)$/);
     if (m) openArticle(m[1]);
     else setTimeout(showQuote, 700);
@@ -918,4 +1085,5 @@ async function init(){
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
