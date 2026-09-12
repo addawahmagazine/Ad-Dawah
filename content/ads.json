@@ -1,0 +1,18 @@
+{
+  "ads": [
+    {
+      "title": "Al Quran Online Madrasah — অনলাইনে কুরআন শিক্ষা",
+      "image": "/uploads/ad-al-quran-online-madrasah.jpg",
+      "link": "https://www.aomedu.org",
+      "position": "top",
+      "active": true
+    },
+    {
+      "title": "মারকাজুল উলুম আল ইসলামিয়া — মাদানী নেসাব, ভর্তি চলছে",
+      "image": "/uploads/ad-markazul-uloom.jpg",
+      "link": "",
+      "position": "bottom",
+      "active": true
+    }
+  ]
+}

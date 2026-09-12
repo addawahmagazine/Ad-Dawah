@@ -1,0 +1,65 @@
+{
+  "intro": "সারা দেশে আদ দাওয়াহ পত্রিকা যেসব প্রতিষ্ঠান ও এজেন্টের মাধ্যমে পাওয়া যায়। আপনার এলাকায় এজেন্ট হতে চাইলে যোগাযোগ করুন।",
+  "outlets": [
+    {
+      "name": "মাকতাবাতুল হিদায়াহ",
+      "kind": "মাকতাবা",
+      "address": "১৫/২, বাংলাবাজার, ঢাকা ১১০০",
+      "phone": "01711-000001",
+      "map": "https://maps.google.com/?q=Banglabazar+Dhaka",
+      "division": "ঢাকা",
+      "district": "ঢাকা",
+      "thana": "কোতোয়ালী"
+    },
+    {
+      "name": "ইসলামিয়া কুতুবখানা",
+      "kind": "মাকতাবা",
+      "address": "আন্দরকিল্লা মোড়, চট্টগ্রাম",
+      "phone": "01711-000002",
+      "map": "https://maps.google.com/?q=Andarkilla+Chittagong",
+      "division": "চট্টগ্রাম",
+      "district": "চট্টগ্রাম",
+      "thana": "কোতোয়ালী"
+    },
+    {
+      "name": "মাওলানা আব্দুর রহমান",
+      "kind": "এজেন্ট",
+      "address": "সদর রোড, বরিশাল",
+      "phone": "01711-000003",
+      "map": "",
+      "division": "বরিশাল",
+      "district": "বরিশাল",
+      "thana": "সদর"
+    },
+    {
+      "name": "দারুল কিতাব",
+      "kind": "মাকতাবা",
+      "address": "জিরো পয়েন্ট, সিলেট",
+      "phone": "01711-000004",
+      "map": "https://maps.google.com/?q=Zero+Point+Sylhet",
+      "division": "সিলেট",
+      "district": "সিলেট",
+      "thana": "কোতোয়ালী"
+    },
+    {
+      "name": "হাফেজ শামসুল হক",
+      "kind": "এজেন্ট",
+      "address": "নিউ মার্কেট এলাকা, রাজশাহী",
+      "phone": "01711-000005",
+      "map": "",
+      "division": "রাজশাহী",
+      "district": "রাজশাহী",
+      "thana": "বোয়ালিয়া"
+    },
+    {
+      "name": "মাকতাবাতুস সুন্নাহ",
+      "kind": "মাকতাবা",
+      "address": "স্টেশন রোড, খুলনা",
+      "phone": "01711-000006",
+      "map": "https://maps.google.com/?q=Station+Road+Khulna",
+      "division": "খুলনা",
+      "district": "খুলনা",
+      "thana": "সদর"
+    }
+  ]
+}
