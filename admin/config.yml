@@ -67,14 +67,26 @@ collections:
                 value_field: "authors.*.id"
                 display_fields: ["authors.*.name"]
                 search_fields: ["authors.*.name"]
+              - name: "kind"
+                label: "প্রকাশের ধরন"
+                widget: "select"
+                default: "magazine"
+                options:
+                  - { label: "পত্রিকায় প্রকাশিত", value: "magazine" }
+                  - { label: "কেবল ওয়েবসাইটে", value: "web" }
               - name: "issue"
                 label: "কোন সংখ্যায়"
                 widget: "relation"
+                required: false
                 collection: "taxonomy"
                 file: "issues"
                 value_field: "issues.*.id"
                 display_fields: ["issues.*.label"]
                 search_fields: ["issues.*.label"]
+                hint: "পত্রিকায় প্রকাশিত হলে সংখ্যাটি বাছুন। কেবল ওয়েবসাইটের লেখা হলে ফাঁকা রাখুন।"
+              - { name: "page", label: "পত্রিকার পৃষ্ঠা নম্বর", widget: "number", value_type: "int",
+                  required: false, min: 1,
+                  hint: "ঐচ্ছিক। পত্রিকার লেখা হলে পৃষ্ঠা নম্বর দিলে পাঠক মিলিয়ে নিতে পারবেন।" }
               - { name: "read", label: "পড়ার সময় (মিনিট)", widget: "number",
                   value_type: "int", min: 1, max: 90, default: 10 }
               - { name: "lead", label: "হোমপেজের প্রধান লেখা", widget: "boolean", default: false,

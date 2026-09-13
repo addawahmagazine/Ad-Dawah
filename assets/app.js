@@ -19,6 +19,8 @@ let ABOUT = {}, QUOTES = {}, ADS = [], OUTLETS = [], OUTLET_INTRO = '';
 
 const catById    = id => CATS.find(c => c.id === id)    || CATS[0]    || { name:'', color:'#0F5132' };
 const issueById  = id => ISSUES.find(i => i.id === id)  || ISSUES[0]  || { label:'', greg:'', hijri:'' };
+const issueOf    = a => ISSUES.find(i => i.id === a.issue) || null;   // না থাকলে null
+const isWeb      = a => a.kind === 'web' || !a.issue;
 const authorById = id => AUTHORS.find(a => a.id === id) || AUTHORS[0] || { name:'' };
 
 /* =========================================================================
@@ -310,6 +312,13 @@ function renderAds(){
 /* =========================================================================
    লেখার গ্রিড
    ========================================================================= */
+const issueBadge = a => {
+  const i = issueOf(a);
+  return i
+    ? `<span class="card__issue">${esc(i.label)}</span>`
+    : `<span class="card__issue card__issue--web">কেবল ওয়েবে</span>`;
+};
+
 const viewBadge = id => {
   const n = window.AD?.enabled ? window.AD.views(id) : 0;
   return n > 0 ? `<span class="card__views">${bn(n)} বার পঠিত</span>` : '';
@@ -325,6 +334,7 @@ function articleCard(a){
   return `<article class="card card--thumbed" data-open="${a.id}" tabindex="0" role="button" aria-label="${esc(a.title)}">
     <div class="card__thumb">${thumb}
       <span class="card__tag" style="background:${c.color}">${esc(c.name)}</span>
+      ${issueBadge(a)}
       ${viewBadge(a.id)}
     </div>
     <div class="card__in">
@@ -345,7 +355,8 @@ function articleCard(a){
 
 function matches(a){
   if (state.cat !== 'all' && a.cat !== state.cat) return false;
-  if (state.issue !== 'all' && a.issue !== state.issue) return false;
+  if (state.issue === '__web'){ if (!isWeb(a)) return false; }
+  else if (state.issue !== 'all' && a.issue !== state.issue) return false;
   if (state.author !== 'all' && a.author !== state.author) return false;
   if (state.q){
     const hay = [a.title, a.excerpt, authorById(a.author).name, catById(a.cat).name].join(' ').toLowerCase();
@@ -385,8 +396,9 @@ function renderFilters(){
     CATS.map(c => `<button class="chip" data-cat="${c.id}">${esc(c.name)}</button>`).join('');
 
   $('#issueFilter').innerHTML =
-    `<option value="all">সব সংখ্যা</option>` +
-    ISSUES.map(i => `<option value="${i.id}">${esc(i.label)}</option>`).join('');
+    `<option value="all">সব লেখা</option>` +
+    ISSUES.map(i => `<option value="${i.id}">${esc(i.label)}</option>`).join('') +
+    `<option value="__web">কেবল ওয়েবসাইটে</option>`;
 
   $('#authorFilter').innerHTML =
     `<option value="all">সব লেখক</option>` +
@@ -650,8 +662,11 @@ function bodyHTML(blocks){
 
 function openArticle(id){
   const a = ARTICLES.find(x => x.id === id); if (!a) return;
-  const c = catById(a.cat), i = issueById(a.issue);
+  const c = catById(a.cat), i = issueOf(a);
   const d = bnDate(a.date);
+  const source = i
+    ? `${esc(i.label)}${a.page ? ` • পৃষ্ঠা ${bn(a.page)}` : ''} ॥ ${esc(i.greg)}`
+    : 'কেবল ওয়েবসাইটে প্রকাশিত';
   const hero = a.thumb ? `<figure class="art__hero"><img src="${esc(a.thumb)}" alt="${esc(a.title)}"></figure>` : '';
   openModal(`
     ${hero}
@@ -659,7 +674,7 @@ function openArticle(id){
     <h2 class="art__h" id="modalTitle">${esc(a.title)}</h2>
     <div class="art__meta">
       <span>${esc(authorById(a.author).name)}</span>
-      <span>${esc(i.label)} ॥ ${esc(i.greg)}</span>
+      <span>${source}</span>
       ${d ? `<span>${d}</span>` : ''}
       <span>পড়তে ${bn(a.read)} মিনিট</span>
     </div>
