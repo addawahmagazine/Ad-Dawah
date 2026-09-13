@@ -310,9 +310,9 @@ function renderAds(){
 /* =========================================================================
    লেখার গ্রিড
    ========================================================================= */
-const viewLabel = id => {
+const viewBadge = id => {
   const n = window.AD?.enabled ? window.AD.views(id) : 0;
-  return n > 0 ? ` • ${bn(n)} বার পঠিত` : '';
+  return n > 0 ? `<span class="card__views">${bn(n)} বার পঠিত</span>` : '';
 };
 const state = { cat:'all', issue:'all', author:'all', q:'', sort:'latest' };
 
@@ -325,12 +325,13 @@ function articleCard(a){
   return `<article class="card card--thumbed" data-open="${a.id}" tabindex="0" role="button" aria-label="${esc(a.title)}">
     <div class="card__thumb">${thumb}
       <span class="card__tag" style="background:${c.color}">${esc(c.name)}</span>
+      ${viewBadge(a.id)}
     </div>
     <div class="card__in">
       <h3 class="card__h">${esc(a.title)}</h3>
       <p class="card__x">${esc(a.excerpt)}</p>
       <div class="card__foot">
-        <span>${esc(authorById(a.author).name)} • ${d || bn(a.read) + ' মিনিট'}${viewLabel(a.id)}</span>
+        <span class="card__by">${esc(authorById(a.author).name)} • ${d || bn(a.read) + ' মিনিট'}</span>
         <span class="card__share">
           <button class="shr" data-share="whatsapp" data-id="${a.id}" aria-label="হোয়াটসঅ্যাপে শেয়ার">${shareIcon('whatsapp')}</button>
           <button class="shr" data-share="facebook" data-id="${a.id}" aria-label="ফেসবুকে শেয়ার">${shareIcon('facebook')}</button>
@@ -423,12 +424,80 @@ function renderCats(){
   }).join('');
 }
 
+const isPaid = i => Number(i.pdf_price) > 0;
+
+function pdfButton(i){
+  if (!isPaid(i)) return `<button class="btn btn--line" data-issuepdf="${i.id}">পিডিএফ</button>`;
+  if (!window.AD?.enabled) return `<button class="btn btn--line" disabled>পিডিএফ ৳${bn(i.pdf_price)}</button>`;
+  const st = AD.user ? AD.issueStatus(i.id) : null;
+  if (st === 'approved') return `<button class="btn btn--green" data-download="${i.id}">পিডিএফ নামান</button>`;
+  if (st === 'pending')  return `<button class="btn btn--line" disabled>যাচাই চলছে…</button>`;
+  return `<button class="btn btn--line" data-buy="${i.id}">পিডিএফ কিনুন ৳${bn(i.pdf_price)}</button>`;
+}
+
+async function downloadIssue(issueId){
+  try{
+    toast('লিংক তৈরি হচ্ছে…');
+    const url = await AD.pdfLink(issueId);
+    window.open(url, '_blank', 'noopener');
+  }catch(err){
+    console.error(err);
+    toast('ফাইলটি পাওয়া গেল না। সম্পাদককে জানান।');
+  }
+}
+
+function openBuy(issueId){
+  const i = issueById(issueId);
+  if (!AD.user){ openAuth('login'); return; }
+  const hint = PAYMENTS.map(p => `<strong>${esc(p.title)} ${bn(p.number)}</strong>`).join(' ॥ ');
+  openModal(`
+    <h2 class="art__h" id="modalTitle">${esc(i.label)} — পিডিএফ</h2>
+    <p class="art__meta">${esc(i.hijri)} ॥ ${esc(i.greg)} • মূল্য ৳${bn(i.pdf_price)}</p>
+    <div class="payhint">
+      প্রথমে <strong>৳${bn(i.pdf_price)}</strong> সেন্ড মানি করুন — ${hint}।
+      তারপর নিচের ঘরে ট্রানজেকশন আইডিটি লিখে পাঠান।
+      সম্পাদক মিলিয়ে দেখে অনুমোদন দিলেই পিডিএফটি আপনার অ্যাকাউন্টে যুক্ত হয়ে যাবে — এরপর যতবার খুশি নামাতে পারবেন।
+    </div>
+    <form class="ordform" id="buyForm">
+      <div class="row">
+        <label class="fld"><span>যে মাধ্যমে পাঠিয়েছেন</span>
+          <select name="method">${PAYMENTS.map(p => `<option>${esc(p.title)}</option>`).join('')}</select>
+        </label>
+        <label class="fld"><span>ট্রানজেকশন আইডি</span>
+          <input name="trxid" required placeholder="যেমন: 9F2K7QX1">
+        </label>
+      </div>
+      <button class="btn btn--green btn--lg" type="submit">পাঠান</button>
+      <p class="form__note" id="buyNote" role="status"></p>
+    </form>`);
+
+  const form = $('#buyForm'), note = $('#buyNote');
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(form));
+    note.textContent = 'পাঠানো হচ্ছে…';
+    try{
+      await AD.buyIssue({
+        issue_id: i.id, issue_label: i.label,
+        amount: Number(i.pdf_price), method: f.method, trxid: f.trxid.trim()
+      });
+      closeModal();
+      toast('পাঠানো হয়েছে। যাচাইয়ের পর জানানো হবে, ইনশাআল্লাহ।');
+      renderIssues();
+    }catch(err){
+      console.error(err);
+      note.textContent = 'পাঠানো গেল না। আবার চেষ্টা করুন।';
+      note.style.color = 'var(--accent)';
+    }
+  });
+}
+
 function renderIssues(){
   $('#issueGrid').innerHTML = [...ISSUES].reverse().map(i => {
     const n = ARTICLES.filter(a => a.issue === i.id).length;
     const btns = i.published
       ? `<button class="btn btn--line" data-issueread="${i.id}">লেখা দেখুন</button>
-         <button class="btn btn--line" data-issuepdf="${i.id}">পিডিএফ</button>`
+         ${pdfButton(i)}`
       : (i.preorder
           ? `<button class="btn btn--line" data-preorder="${i.id}">প্রি-অর্ডার</button>`
           : `<button class="btn btn--line" disabled>${esc(i.tagline || 'প্রস্তুত হচ্ছে')}</button>`);
@@ -644,11 +713,25 @@ function pagePlate(issue, n){
 function openPdf(issueId){
   const issue = issueById(issueId);
   let page = 0; const total = 3;
-  const dl = issue.pdf
-    ? `<a class="btn btn--gold btn--lg" href="${esc(issue.pdf)}" download style="justify-self:center">
-         <svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16"/></svg>
-         সম্পূর্ণ পিডিএফ নামান</a>`
-    : `<p class="pdfv__note">এই সংখ্যার পিডিএফ এখনও যুক্ত করা হয়নি।</p>`;
+  let dl;
+  if (isPaid(issue)){
+    const st = (window.AD?.enabled && AD.user) ? AD.issueStatus(issue.id) : null;
+    if (st === 'approved')
+      dl = `<button class="btn btn--gold btn--lg" data-download="${issue.id}" style="justify-self:center">
+              <svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16"/></svg>
+              সম্পূর্ণ পিডিএফ নামান</button>`;
+    else if (st === 'pending')
+      dl = `<p class="pdfv__note">আপনার অর্ডারটি যাচাই করা হচ্ছে। অনুমোদনের পর এখানেই নামানোর বোতাম আসবে।</p>`;
+    else
+      dl = `<button class="btn btn--gold btn--lg" data-buy="${issue.id}" style="justify-self:center">
+              পিডিএফ কিনুন — ৳${bn(issue.pdf_price)}</button>`;
+  } else {
+    dl = issue.pdf
+      ? `<a class="btn btn--gold btn--lg" href="${esc(issue.pdf)}" download style="justify-self:center">
+           <svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16"/></svg>
+           সম্পূর্ণ পিডিএফ নামান</a>`
+      : `<p class="pdfv__note">এই সংখ্যার পিডিএফ এখনও যুক্ত করা হয়নি।</p>`;
+  }
 
   openModal(`
     <h2 class="art__h" id="modalTitle">${esc(issue.label)} — পিডিএফ</h2>
@@ -747,8 +830,13 @@ function openAuth(mode){
     note.textContent = 'অপেক্ষা করুন…';
     try{
       if (mode === 'signup'){
-        await AD.signUp(f.email, f.password, f.name);
-        note.textContent = 'নিবন্ধন হয়েছে। ইমেইলে পাঠানো লিংকে ক্লিক করে অ্যাকাউন্টটি নিশ্চিত করুন।';
+        const res = await AD.signUp(f.email, f.password, f.name);
+        if (res?.session){                    // ইমেইল যাচাই বন্ধ থাকলে সঙ্গে সঙ্গেই লগইন
+          closeModal();
+          toast('স্বাগতম, ' + (f.name || ''));
+        } else {
+          note.textContent = 'নিবন্ধন হয়েছে। ইমেইলে পাঠানো লিংকে ক্লিক করে অ্যাকাউন্টটি নিশ্চিত করুন।';
+        }
       } else {
         await AD.signIn(f.email, f.password);
         closeModal();
@@ -778,8 +866,13 @@ async function openAccount(){
     <div class="acct">
       <h3 class="acct__h">সংরক্ষিত লেখা</h3>
       <div id="acctMarks"><p class="acct__empty">লোড হচ্ছে…</p></div>
+      <h3 class="acct__h">কেনা সংখ্যা</h3>
+      <div id="acctBuys"></div>
+
       <h3 class="acct__h">আপনার প্রশ্ন</h3>
       <div id="acctQs"><p class="acct__empty">লোড হচ্ছে…</p></div>
+
+      <div id="acctAdmin"></div>
       <button class="btn btn--line" id="signOutBtn">লগআউট</button>
     </div>`);
 
@@ -790,6 +883,9 @@ async function openAccount(){
     ? marks.map(a => `<button class="acctitem" data-open="${a.id}">
         <b>${esc(a.title)}</b><span>${esc(catById(a.cat).name)} • ${esc(authorById(a.author).name)}</span></button>`).join('')
     : '<p class="acct__empty">এখনও কোনো লেখা সংরক্ষণ করেননি। যেকোনো লেখা খুলে “সংরক্ষণ করুন” চাপলেই এখানে জমা হবে।</p>';
+
+  renderMyBuys();
+  if (AD.isAdmin) renderAdminBox();
 
   try{
     const qs = await AD.myQuestions();
@@ -802,6 +898,55 @@ async function openAccount(){
       : '<p class="acct__empty">এখনও কোনো প্রশ্ন পাঠাননি।</p>';
   }catch(e){
     $('#acctQs').innerHTML = '<p class="acct__empty">প্রশ্নগুলো আনা গেল না।</p>';
+  }
+}
+
+function renderMyBuys(){
+  const box = $('#acctBuys'); if (!box) return;
+  const rows = AD.purchases || [];
+  if (!rows.length){
+    box.innerHTML = '<p class="acct__empty">এখনও কোনো সংখ্যার পিডিএফ কেনেননি। “সকল সংখ্যা” অংশ থেকে কিনতে পারবেন।</p>';
+    return;
+  }
+  const label = { pending:'যাচাই চলছে', approved:'অনুমোদিত', rejected:'বাতিল' };
+  box.innerHTML = rows.map(p => `
+    <div class="buyrow">
+      <div>
+        <b>${esc(p.issue_label || p.issue_id)}</b>
+        <span>৳${bn(p.amount || 0)} • ${esc(p.method || '')} • ${esc(p.trxid || '')}</span>
+        ${p.note ? `<span class="buyrow__note">${esc(p.note)}</span>` : ''}
+      </div>
+      <div class="buyrow__end">
+        <span class="pill pill--${p.status}">${label[p.status]}</span>
+        ${p.status === 'approved' ? `<button class="btn btn--green" data-download="${p.issue_id}">নামান</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+async function renderAdminBox(){
+  const box = $('#acctAdmin'); if (!box) return;
+  box.innerHTML = '<h3 class="acct__h">অপেক্ষমাণ অর্ডার</h3><p class="acct__empty">লোড হচ্ছে…</p>';
+  try{
+    const rows = await AD.allPurchases('pending');
+    box.innerHTML = `<h3 class="acct__h">অপেক্ষমাণ অর্ডার${rows.length ? ` (${bn(rows.length)})` : ''}</h3>` + (
+      rows.length
+        ? rows.map(p => `
+          <div class="buyrow buyrow--admin" data-row="${p.id}">
+            <div>
+              <b>${esc(p.issue_label || p.issue_id)}</b>
+              <span>৳${bn(p.amount || 0)} • ${esc(p.method || '')}</span>
+              <span class="buyrow__trx">${esc(p.trxid || '')}</span>
+              <span class="buyrow__note">${bnDate(p.created_at)}</span>
+            </div>
+            <div class="buyrow__end">
+              <button class="btn btn--green" data-approve="${p.id}">অনুমোদন</button>
+              <button class="btn btn--line" data-reject="${p.id}">বাতিল</button>
+            </div>
+          </div>`).join('')
+        : '<p class="acct__empty">অপেক্ষমাণ কোনো অর্ডার নেই।</p>');
+  }catch(err){
+    console.error(err);
+    box.innerHTML = '<h3 class="acct__h">অপেক্ষমাণ অর্ডার</h3><p class="acct__empty">তালিকাটি আনা গেল না।</p>';
   }
 }
 
@@ -922,7 +1067,7 @@ function renderAll(){
 }
 
 function wireUI(){
-  setTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  setTheme('light');   // ডিফল্ট দিনের মোড; পাঠক চাইলে বোতামে বদলাবেন
   $('#themeToggle').onclick = () =>
     setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 
@@ -992,6 +1137,32 @@ function wireUI(){
 
     const cp = e.target.closest('[data-copy]');
     if (cp){ navigator.clipboard?.writeText(cp.dataset.copy).then(() => toast('নম্বর কপি হয়েছে')); return; }
+
+    const buy = e.target.closest('[data-buy]');
+    if (buy){ openBuy(buy.dataset.buy); return; }
+
+    const dl = e.target.closest('[data-download]');
+    if (dl){ downloadIssue(dl.dataset.download); return; }
+
+    const ap = e.target.closest('[data-approve]');
+    if (ap){
+      ap.disabled = true;
+      AD.decide(ap.dataset.approve, 'approved')
+        .then(() => { toast('অনুমোদন হয়েছে'); renderAdminBox(); })
+        .catch(() => { ap.disabled = false; toast('অনুমোদন করা গেল না'); });
+      return;
+    }
+
+    const rj = e.target.closest('[data-reject]');
+    if (rj){
+      const why = prompt('বাতিলের কারণ (ক্রেতা দেখতে পাবেন):', 'ট্রানজেকশন আইডি মেলেনি');
+      if (why === null) return;
+      rj.disabled = true;
+      AD.decide(rj.dataset.reject, 'rejected', why)
+        .then(() => { toast('বাতিল করা হয়েছে'); renderAdminBox(); })
+        .catch(() => { rj.disabled = false; toast('বাতিল করা গেল না'); });
+      return;
+    }
 
     const bm = e.target.closest('[data-bookmark]');
     if (bm){

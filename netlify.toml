@@ -13,8 +13,30 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
 
+# কোড ফাইল — প্রতিবার যাচাই হবে, নইলে পুরোনো সংস্করণ আটকে থাকে
 [[headers]]
-  for = "/assets/*"
+  for = "/assets/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ফন্ট, লোগো ও ছবি — বদলায় না, তাই দীর্ঘ ক্যাশ
+[[headers]]
+  for = "/assets/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/uploads/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "/assets/*.svg"
   [headers.values]
     Cache-Control = "public, max-age=604800"
 

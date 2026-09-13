@@ -38,24 +38,24 @@
 }
 
 [data-theme="dark"]{
-  --brand:#3FA97A;
-  --brand-deep:#8FD9B4;
-  --brand-soft:#15302428;
-  --brand-softer:#12231C;
-  --accent:#E0A340;
-  --accent-soft:#2A2015;
+  --brand:#5FC69A;
+  --brand-deep:#8ADDBB;
+  --brand-soft:#1E2C26;
+  --brand-softer:#181F1B;
+  --accent:#E3A94F;
+  --accent-soft:#272117;
 
-  --bg:#0C1512;
-  --bg-tint:#111D18;
-  --surface:#13201B;
-  --text:#E7EFE9;
-  --muted:#9BAFA5;
-  --line:#1F312A;
-  --line-soft:#182821;
+  --bg:#121714;
+  --bg-tint:#171D19;
+  --surface:#1A211D;
+  --text:#E6ECE8;
+  --muted:#9DAAA3;
+  --line:#28302B;
+  --line-soft:#212823;
 
-  --shadow-s:0 1px 2px rgba(0,0,0,.3);
-  --shadow-m:0 4px 20px rgba(0,0,0,.35);
-  --shadow-l:0 12px 40px rgba(0,0,0,.45);
+  --shadow-s:0 1px 2px rgba(0,0,0,.22);
+  --shadow-m:0 4px 18px rgba(0,0,0,.26);
+  --shadow-l:0 12px 36px rgba(0,0,0,.34);
 }
 
 *,*::before,*::after{box-sizing:border-box}
@@ -103,7 +103,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
    হেডার
    ========================================================================== */
 .head{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-[data-theme="dark"] .head{background:rgba(12,21,18,.92)}
+
 .head.is-stuck{box-shadow:var(--shadow-m)}
 .head__in{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;padding:16px 0 12px}
 
@@ -638,3 +638,47 @@ h1,h2,h3,h4,
 .acct #signOutBtn{justify-self:start;margin-top:18px}
 
 .stats{color:var(--muted)}
+
+/* কার্ডের নিচের লাইন এক লাইনে রাখা */
+.card__foot{flex-wrap:nowrap}
+.card__by{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card__share{flex:0 0 auto}
+.card__views{position:absolute;inset-inline-end:12px;bottom:12px;padding:5px 12px;border-radius:var(--r-pill);font-size:12px;color:#fff;background:rgba(10,26,20,.55);backdrop-filter:blur(4px)}
+
+
+/* ==========================================================================
+   রাতের মোড — সূক্ষ্ম সমন্বয়
+   ========================================================================== */
+[data-theme="dark"] .head{background:rgba(18,23,20,.9)}
+[data-theme="dark"] .hero{background:linear-gradient(180deg,var(--brand-softer) 0%,var(--bg) 72%)}
+[data-theme="dark"] .hero__pattern{background-image:radial-gradient(circle at 50% 50%,rgba(95,198,154,.12) 0 1.2px,transparent 1.4px)}
+[data-theme="dark"] .cover{box-shadow:0 12px 32px rgba(0,0,0,.4)}
+[data-theme="dark"] .card__views{background:rgba(0,0,0,.5)}
+[data-theme="dark"] .info__art{color:#F2F6F3}
+[data-theme="dark"] .modal__scrim,[data-theme="dark"] .qpop__scrim{background:rgba(6,10,8,.66)}
+[data-theme="dark"] .toast{background:var(--surface);color:var(--text);border:1px solid var(--line)}
+[data-theme="dark"] .adcard__lbl{background:var(--surface)}
+[data-theme="dark"] .iconbtn__dot{border-color:var(--surface)}
+
+/* ==========================================================================
+   পিডিএফ ক্রয় ও প্রশাসকের তালিকা
+   ========================================================================== */
+.buyrow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:16px 18px;margin-bottom:10px}
+.buyrow b{display:block;font-family:var(--font-display);font-weight:700;font-size:17px;line-height:1.6}
+.buyrow span{display:block;font-size:13.5px;color:var(--muted)}
+.buyrow__trx{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px !important;color:var(--text) !important;word-break:break-all}
+.buyrow__note{opacity:.8}
+.buyrow__end{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-inline-start:auto}
+.buyrow__end .btn{padding:8px 16px;font-size:14.5px}
+.buyrow--admin{background:var(--brand-softer)}
+
+.pill{display:inline-block;padding:4px 13px;border-radius:var(--r-pill);font-size:12.5px;white-space:nowrap}
+.pill--pending{background:var(--accent-soft);color:var(--accent)}
+.pill--approved{background:var(--brand-soft);color:var(--brand)}
+.pill--rejected{background:var(--line-soft);color:var(--muted)}
+
+@media (max-width:520px){
+  .buyrow__end{margin-inline-start:0;width:100%}
+  .buyrow__end .btn{flex:1}
+}

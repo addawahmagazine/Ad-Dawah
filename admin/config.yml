@@ -143,7 +143,11 @@ collections:
               - { name: "preorder_note", label: "প্রি-অর্ডারের ছোট বর্ণনা", widget: "text", required: false,
                   hint: "যেমন: এই সংখ্যার মূল প্রতিবেদন — তাকদীর প্রসঙ্গে সংশয় নিরসন।" }
               - { name: "pages", label: "পৃষ্ঠা সংখ্যা", widget: "number", value_type: "int", default: 96, required: false }
-              - { name: "pdf", label: "পিডিএফ ফাইল", widget: "file", required: false }
+              - { name: "pdf", label: "পিডিএফ ফাইল (বিনামূল্যে দিলে)", widget: "file", required: false,
+                  hint: "বিনামূল্যে বিলি করলে এখানে আপলোড করুন। বিক্রি করতে চাইলে এটি ফাঁকা রেখে নিচে দাম বসান এবং ফাইলটি Supabase Storage-এ রাখুন।" }
+              - { name: "pdf_price", label: "পিডিএফের দাম (৳)", widget: "number", value_type: "int",
+                  required: false, default: 0, min: 0,
+                  hint: "০ রাখলে পিডিএফটি সবার জন্য বিনামূল্যে। দাম বসালে পাঠককে কিনতে হবে — তখন ফাইলটি Supabase Storage-এর issues বাকেটে <আইডি>.pdf নামে আপলোড করতে হবে, যেমন y1n1.pdf" }
               - { name: "cover", label: "প্রচ্ছদের ছবি", widget: "image", required: false,
                   hint: "না দিলে স্বয়ংক্রিয়ভাবে একটি প্রচ্ছদ তৈরি হবে।" }
               - { name: "tagline", label: "ছোট নোট", widget: "string", required: false,

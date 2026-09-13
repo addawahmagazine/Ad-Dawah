@@ -16,6 +16,8 @@ const AD = {
   bookmarks: new Set(),
   stats: {},            // { articleId: views }
   visits: { today: 0, total: 0, online: 0 },
+  isAdmin: false,
+  purchases: [],          // নিজের অর্ডার
   listeners: []
 };
 window.AD = AD;
@@ -35,11 +37,11 @@ AD.ready = (async () => {
 
     AD.client.auth.onAuthStateChange(async (_e, s) => {
       AD.user = s?.user || null;
-      await loadBookmarks();
+      await Promise.all([loadBookmarks(), loadAccountExtras()]);
       emit();
     });
 
-    await Promise.all([loadBookmarks(), loadStats()]);
+    await Promise.all([loadBookmarks(), loadStats(), loadAccountExtras()]);
     recordVisit();
     trackOnline();
   } catch (err) {
@@ -187,3 +189,73 @@ function trackOnline(){
     });
   addEventListener('beforeunload', () => { try { ch.unsubscribe(); } catch (e) {} });
 }
+
+
+/* =========================================================================
+   পিডিএফ ক্রয়
+   ========================================================================= */
+async function loadAccountExtras(){
+  AD.isAdmin = false;
+  AD.purchases = [];
+  if (!AD.client || !AD.user) return;
+
+  const [adm, pur] = await Promise.all([
+    AD.client.rpc('is_admin'),
+    AD.client.from('purchases')
+      .select('id, issue_id, issue_label, amount, method, trxid, status, note, created_at')
+      .order('created_at', { ascending: false })
+  ]);
+  AD.isAdmin  = adm.data === true;
+  AD.purchases = pur.data || [];
+}
+
+AD.refreshPurchases = async () => { await loadAccountExtras(); emit(); };
+
+AD.hasIssue = issueId =>
+  AD.purchases.some(p => p.issue_id === issueId && p.status === 'approved');
+
+AD.issueStatus = issueId => {
+  const rows = AD.purchases.filter(p => p.issue_id === issueId);
+  if (rows.some(p => p.status === 'approved')) return 'approved';
+  if (rows.some(p => p.status === 'pending'))  return 'pending';
+  if (rows.some(p => p.status === 'rejected')) return 'rejected';
+  return null;
+};
+
+AD.buyIssue = async ({ issue_id, issue_label, amount, method, trxid }) => {
+  if (!AD.user) throw new Error('লগইন প্রয়োজন');
+  const { error } = await AD.client.from('purchases').insert({
+    user_id: AD.user.id, issue_id, issue_label, amount, method, trxid, status: 'pending'
+  });
+  if (error) throw error;
+  await AD.refreshPurchases();
+};
+
+/* সুরক্ষিত ডাউনলোড — ১০ মিনিটের জন্য একটি সাময়িক লিংক */
+AD.pdfLink = async issueId => {
+  const { data, error } = await AD.client.storage
+    .from('issues')
+    .createSignedUrl(`${issueId}.pdf`, 600, { download: `ad-dawah-${issueId}.pdf` });
+  if (error) throw error;
+  return data.signedUrl;
+};
+
+/* ---------------------------------------------------------- প্রশাসকের কাজ */
+AD.allPurchases = async (status = 'pending') => {
+  if (!AD.isAdmin) return [];
+  let q = AD.client.from('purchases')
+    .select('id, user_id, issue_id, issue_label, amount, method, trxid, status, note, created_at')
+    .order('created_at', { ascending: false });
+  if (status !== 'all') q = q.eq('status', status);
+  const { data, error } = await q;
+  if (error) throw error;
+  return data || [];
+};
+
+AD.decide = async (id, status, note) => {
+  if (!AD.isAdmin) throw new Error('অনুমতি নেই');
+  const { error } = await AD.client.from('purchases')
+    .update({ status, note: note || null, decided_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
+};
