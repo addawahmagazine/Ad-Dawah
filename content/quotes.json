@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "show_once_per_visit": true,
+  "show_once_per_visit": false,
   "quotes": [
     {
       "text": "আর তোমরা আল্লাহর রজ্জুকে দৃঢ়ভাবে আঁকড়ে ধরো, সকলে মিলে; এবং বিচ্ছিন্ন হয়ো না।",
