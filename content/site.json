@@ -1,33 +1,39 @@
 {
-  "facebook": "https://facebook.com/",
-  "youtube": "https://youtube.com/",
-  "telegram": "https://t.me/",
-  "email": "editor@ad-dawah.org",
-  "phone": "+8801700000000",
-  "address": "সম্পাদকীয় কার্যালয়\n১২/ক, উত্তর যাত্রাবাড়ী, ঢাকা ১২০৪",
-  "price_single": 120,
-  "price_yearly": 450,
-  "price_bundle": 1000,
-  "order_note": "প্রতি সংখ্যা মুদ্রিত আকারে সারা দেশে কুরিয়ারে পৌঁছে দেওয়া হয়।",
+  "price_yearly": 500,
+  "telegram": "https://t.me/Addawah2",
   "donate_note": "একটি সংখ্যা ছাপাতে আনুমানিক ৳৮৫,০০০ খরচ হয়। আপনার সহযোগিতায় প্রতি সংখ্যা প্রায় ৭০০ কপি মাদরাসা, কারাগার ও নওমুসলিম ভাই-বোনদের কাছে বিনামূল্যে পৌঁছে যায়।",
+  "order_note": "প্রতি সংখ্যা মুদ্রিত আকারে সারা দেশে কুরিয়ারে পৌঁছে দেওয়া হয়।",
+  "youtube": "https://youtube.com/",
+  "facebook": "https://www.facebook.com/AdDawahmagazin",
   "payments": [
     {
       "name": "bKash",
       "color": "#E2136E",
       "title": "বিকাশ (পারসোনাল)",
-      "number": "01700-000000"
+      "number": "01974446675"
     },
     {
       "name": "Nagad",
       "color": "#EE7623",
       "title": "নগদ (পারসোনাল)",
-      "number": "01800-000000"
+      "number": "01974446675"
     },
     {
       "name": "Rocket",
       "color": "#8C3494",
       "title": "রকেট",
-      "number": "01900-000000"
+      "number": "01974446675"
+    },
+    {
+      "color": "#E2136E",
+      "name": "Islami Bank Bangladesh PLC",
+      "title": "ইসালামী ব্যাংক বাংলাদেশ পিএলসি",
+      "number": "20507070200039115"
     }
-  ]
+  ],
+  "phone": "01974446675",
+  "address": "সম্পাদকীয় কার্যালয়\nমোহাম্মাদপুর, ঢাকা",
+  "price_bundle": 300,
+  "email": "addawahmagazine@gmail.com",
+  "price_single": 30
 }
