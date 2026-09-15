@@ -1,56 +1,61 @@
 {
   "issues": [
     {
-      "id": "y1n1",
-      "label": "বর্ষ ১, সংখ্যা ১",
-      "hijri": "সফর ১৪৪৮",
-      "greg": "আগস্ট ২০২৬",
-      "published": true,
-      "pages": 96,
-      "pdf": "issues/ad-dawah-y1n1.pdf",
-      "tagline": "সূচনা সংখ্যা",
-      "cover": "",
+      "hijri": "সফর ১৪৪১",
+      "pages": 36,
       "bg": "#064E3B",
-      "accent": "#D97706"
+      "preview": [
+        "/uploads/আদ-দাওয়াহ-১ম-সংখ্যা-প্রচ্ছদ.jpg",
+        "/uploads/ad-markazul-uloom.jpg"
+      ],
+      "accent": "#D97706",
+      "greg": "মার্চ ২০২০",
+      "published": true,
+      "tagline": "সূচনা সংখ্যা",
+      "pdf": "/uploads/bse-2301-lecture-2-.pdf",
+      "label": "বর্ষ ১, সংখ্যা ১",
+      "cover": "/uploads/আদ-দাওয়াহ-১ম-সংখ্যা-প্রচ্ছদ.jpg",
+      "id": "y1n1",
+      "pdf_price": 12
     },
     {
-      "id": "y1n2",
-      "label": "বর্ষ ১, সংখ্যা ২",
       "hijri": "জুমাদাল ঊলা ১৪৪৮",
+      "pages": 0,
+      "bg": "#0F5132",
+      "accent": "#D97706",
       "greg": "নভেম্বর ২০২৬",
       "published": false,
-      "pages": 0,
-      "pdf": "",
       "tagline": "প্রস্তুত হচ্ছে",
+      "pdf": "",
+      "label": "বর্ষ ১, সংখ্যা ২",
       "cover": "",
-      "bg": "#0F5132",
-      "accent": "#D97706"
+      "id": "y1n2"
     },
     {
-      "id": "y1n3",
-      "label": "বর্ষ ১, সংখ্যা ৩",
       "hijri": "শা‌বান ১৪৪৮",
+      "pages": 0,
+      "bg": "#14664A",
+      "accent": "#D97706",
       "greg": "ফেব্রুয়ারি ২০২৭",
       "published": false,
-      "pages": 0,
-      "pdf": "",
       "tagline": "প্রস্তুত হচ্ছে",
+      "pdf": "",
+      "label": "বর্ষ ১, সংখ্যা ৩",
       "cover": "",
-      "bg": "#14664A",
-      "accent": "#D97706"
+      "id": "y1n3"
     },
     {
-      "id": "y1n4",
-      "label": "বর্ষ ১, সংখ্যা ৪",
       "hijri": "যিলক্বদ ১৪৪৮",
+      "pages": 0,
+      "bg": "#0B3F2C",
+      "accent": "#D97706",
       "greg": "মে ২০২৭",
       "published": false,
-      "pages": 0,
-      "pdf": "",
       "tagline": "প্রস্তুত হচ্ছে",
+      "pdf": "",
+      "label": "বর্ষ ১, সংখ্যা ৪",
       "cover": "",
-      "bg": "#0B3F2C",
-      "accent": "#D97706"
+      "id": "y1n4"
     }
   ]
 }
