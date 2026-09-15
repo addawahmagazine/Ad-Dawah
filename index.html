@@ -167,17 +167,23 @@
     <nav class="nav" id="mainNav" aria-label="প্রধান মেনু">
       <ul class="nav__list">
         <li><a href="#home" class="nav__link is-active">হোম</a></li>
-        <li><a href="#about" class="nav__link">আমাদের সম্পর্কে</a></li>
-        <li><a href="#archive" class="nav__link">সকল সংখ্যা</a></li>
         <li class="nav__has-sub">
-          <button class="nav__link nav__subtoggle" aria-expanded="false">বিভাগসমূহ
+          <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navIssues">সকল সংখ্যা
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <ul class="nav__sub" id="navIssues"></ul>
+        </li>
+        <li class="nav__has-sub">
+          <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navCats">বিভাগসমূহ
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <ul class="nav__sub" id="navCats"></ul>
         </li>
         <li><a href="#authors" class="nav__link">লেখকবৃন্দ</a></li>
-        <li><a href="#outlets" class="nav__link">এজেন্ট ও মাকতাবা</a></li>
         <li><a href="#qa" class="nav__link">আপনার জিজ্ঞাসা</a></li>
+        <li><a href="#about" class="nav__link">আমাদের সম্পর্কে</a></li>
+        <li><a href="#outlets" class="nav__link">এজেন্ট ও মাকতাবা</a></li>
+        <li><a href="#donate" class="nav__link">ফান্ড পাঠান</a></li>
         <li><a href="#contact" class="nav__link">যোগাযোগ</a></li>
       </ul>
     </nav>
@@ -283,27 +289,25 @@
   </div>
 </section>
 
-<!-- ===== CATEGORY EXPLAINER ===== -->
-<section class="section section--tint" id="categories">
-  <div class="wrap">
-    <header class="sechead">
-      <h2 class="sechead__h">আমাদের বিভাগসমূহ</h2>
-      <p class="sechead__p">প্রতিটি সংখ্যা চারটি ধারায় সাজানো হয়।</p>
-    </header>
-    <div class="catgrid" id="catGrid"></div>
-  </div>
-</section>
-
-<div class="wrap"><div class="adslot" id="adBottom" hidden></div></div>
-
 <!-- ===== ARCHIVE ===== -->
-<section class="section" id="archive">
+<section class="section section--tint" id="archive">
   <div class="wrap">
     <header class="sechead">
       <h2 class="sechead__h">সকল সংখ্যা</h2>
       <p class="sechead__p">প্রকাশিত প্রতিটি সংখ্যা অনলাইনে পড়া ও পিডিএফে সংরক্ষণ করা যায়।</p>
     </header>
     <div class="issues" id="issueGrid"></div>
+  </div>
+</section>
+
+<!-- ===== CATEGORY EXPLAINER ===== -->
+<section class="section" id="categories">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__h">আমাদের বিভাগসমূহ</h2>
+      <p class="sechead__p">প্রতিটি সংখ্যা চারটি ধারায় সাজানো হয়।</p>
+    </header>
+    <div class="catgrid" id="catGrid"></div>
   </div>
 </section>
 
@@ -323,8 +327,19 @@
   </div>
 </section>
 
+<!-- ===== AUTHORS ===== -->
+<section class="section" id="authors">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__h">লেখকবৃন্দ</h2>
+      <p class="sechead__p">যাঁদের কলমে সাজে আদ দাওয়াহ।</p>
+    </header>
+    <div class="authors" id="authorGrid"></div>
+  </div>
+</section>
+
 <!-- ===== Q&A ===== -->
-<section class="section" id="qa">
+<section class="section section--tint" id="qa">
   <div class="wrap qa">
     <div class="qa__intro">
       <h2 class="sechead__h">আপনার জিজ্ঞাসা</h2>
@@ -361,7 +376,7 @@
 </section>
 
 <!-- ===== SUBMIT ARTICLE ===== -->
-<section class="section section--tint" id="submit">
+<section class="section" id="submit">
   <div class="wrap submit">
     <div class="submit__intro">
       <h2 class="sechead__h" id="submitTitle">আমাদের জন্য লিখুন</h2>
@@ -394,19 +409,8 @@
   </div>
 </section>
 
-<!-- ===== AUTHORS ===== -->
-<section class="section section--tint" id="authors">
-  <div class="wrap">
-    <header class="sechead">
-      <h2 class="sechead__h">লেখকবৃন্দ</h2>
-      <p class="sechead__p">যাঁদের কলমে সাজে আদ দাওয়াহ।</p>
-    </header>
-    <div class="authors" id="authorGrid"></div>
-  </div>
-</section>
-
 <!-- ===== ABOUT ===== -->
-<section class="section" id="about">
+<section class="section section--tint" id="about">
   <div class="wrap about">
     <div class="about__main">
       <h2 class="sechead__h" id="aboutHeading">আমাদের সম্পর্কে</h2>
@@ -437,6 +441,8 @@
     <p class="empty" id="outletEmpty" hidden>এই ছাঁকনিতে কিছু পাওয়া যায়নি।</p>
   </div>
 </section>
+
+<div class="wrap"><div class="adslot" id="adBottom" hidden></div></div>
 
 <!-- ===== DONATION ===== -->
 <section class="donate" id="donate">
@@ -541,7 +547,8 @@
 <!-- Netlify যেন অর্ডার ফর্মটি খুঁজে পায় (ফর্মটি JS দিয়ে তৈরি হয়) -->
 <form name="order" data-netlify="true" hidden>
   <input name="nam"><input name="mobile"><textarea name="thikana"></textarea>
-  <input name="package"><input name="payment"><input name="trxid">
+  <input name="copies"><input name="payment"><input name="trxid">
+  <input name="dhoron"><input name="songkha">
 </form>
 
 <!-- shared SVG symbols -->

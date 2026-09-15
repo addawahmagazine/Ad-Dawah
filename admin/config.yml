@@ -145,8 +145,9 @@ collections:
             collapsed: true
             fields:
               - { name: "label", label: "সংখ্যার নাম", widget: "string", hint: "যেমন: বর্ষ ১, সংখ্যা ২" }
-              - { name: "id", label: "লিংক-নাম (ইংরেজি)", widget: "string", hint: "যেমন: y1n2",
-                  pattern: ['^[a-z0-9-]+$', 'কেবল ছোট হাতের ইংরেজি অক্ষর, সংখ্যা ও হাইফেন'] }
+              - { name: "id", label: "লিংক-নাম (ইংরেজি, অনন্য)", widget: "string",
+                  hint: "যেমন: AdDawah.1 বা y1n2। ইংরেজি অক্ষর, সংখ্যা, বিন্দু, হাইফেন ও আন্ডারস্কোর চলবে — ফাঁকা জায়গা বা বাংলা অক্ষর নয়। ⚠️ একবার দিয়ে দিলে আর বদলাবেন না, নইলে ওই সংখ্যার লেখাগুলোর সঙ্গে সম্পর্ক ছিঁড়ে যাবে।",
+                  pattern: ['^[A-Za-z0-9._-]+$', 'ইংরেজি অক্ষর, সংখ্যা, বিন্দু, হাইফেন ও আন্ডারস্কোর চলবে'] }
               - { name: "hijri", label: "হিজরি তারিখ", widget: "string", hint: "যেমন: জুমাদাল ঊলা ১৪৪৮" }
               - { name: "greg", label: "ইংরেজি তারিখ", widget: "string", hint: "যেমন: নভেম্বর ২০২৬" }
               - { name: "published", label: "প্রকাশিত", widget: "boolean", default: false }
@@ -155,13 +156,20 @@ collections:
               - { name: "preorder_note", label: "প্রি-অর্ডারের ছোট বর্ণনা", widget: "text", required: false,
                   hint: "যেমন: এই সংখ্যার মূল প্রতিবেদন — তাকদীর প্রসঙ্গে সংশয় নিরসন।" }
               - { name: "pages", label: "পৃষ্ঠা সংখ্যা", widget: "number", value_type: "int", default: 96, required: false }
-              - { name: "pdf", label: "পিডিএফ ফাইল (বিনামূল্যে দিলে)", widget: "file", required: false,
-                  hint: "বিনামূল্যে বিলি করলে এখানে আপলোড করুন। বিক্রি করতে চাইলে এটি ফাঁকা রেখে নিচে দাম বসান এবং ফাইলটি Supabase Storage-এ রাখুন।" }
+              - { name: "pdf", label: "শর্ট পিডিএফ", widget: "file", required: false,
+                  hint: "এই ঘরের ফাইলটি সবার জন্য খোলা থাকে। দাম ০ রাখলে এখানেই সম্পূর্ণ পিডিএফ দিন। দাম বসালে এখানে দিন ৮-১০ পৃষ্ঠার শর্ট পিডিএফ, আর সম্পূর্ণ ফাইলটি রাখুন Supabase Storage-এ।" }
               - { name: "pdf_price", label: "পিডিএফের দাম (৳)", widget: "number", value_type: "int",
                   required: false, default: 0, min: 0,
-                  hint: "০ রাখলে পিডিএফটি সবার জন্য বিনামূল্যে। দাম বসালে পাঠককে কিনতে হবে — তখন ফাইলটি Supabase Storage-এর issues বাকেটে <আইডি>.pdf নামে আপলোড করতে হবে, যেমন y1n1.pdf" }
+                  hint: "০ রাখলে উপরের পিডিএফটি সবার জন্য বিনামূল্যে। দাম বসালে উপরেরটি শর্ট পিডিএফ হিসেবে গণ্য হবে, আর সম্পূর্ণ ফাইলটি Supabase Storage-এর issues বাকেটে <আইডি>.pdf নামে আপলোড করতে হবে — যেমন AdDawah.1.pdf" }
               - { name: "cover", label: "প্রচ্ছদের ছবি", widget: "image", required: false,
                   hint: "না দিলে স্বয়ংক্রিয়ভাবে একটি প্রচ্ছদ তৈরি হবে।" }
+              - name: "preview"
+                label: "ভেতরের প্রিভিউ পৃষ্ঠা"
+                label_singular: "নতুন পৃষ্ঠা"
+                widget: "list"
+                required: false
+                field: { name: "img", label: "পৃষ্ঠার ছবি", widget: "image" }
+                hint: "পত্রিকার ভেতরের ২-৪টি পৃষ্ঠার ছবি দিন (পিডিএফ থেকে JPG করে নিন)। পাঠক পিডিএফ জানালায় প্রচ্ছদের পর এগুলো উল্টে দেখতে পাবেন। না দিলে কেবল প্রচ্ছদ ও সূচিপত্র দেখাবে।"
               - { name: "tagline", label: "ছোট নোট", widget: "string", required: false,
                   default: "প্রস্তুত হচ্ছে" }
               - { name: "bg", label: "প্রচ্ছদের রঙ", widget: "color", default: "#064E3B", required: false }
@@ -225,6 +233,16 @@ collections:
                   hint: "ছবি দিলে সেটিই কার্ড হিসেবে দেখাবে। না দিলে নিচের রঙ ও লেখা দিয়ে কার্ড তৈরি হবে।" }
               - { name: "title", label: "কার্ডের মূল কথা", widget: "text" }
               - { name: "sub", label: "নিচের ছোট লাইন", widget: "string" }
+              - name: "article"
+                label: "কোন লেখার সঙ্গে যুক্ত"
+                widget: "relation"
+                required: false
+                collection: "articles"
+                file: "articles"
+                value_field: "articles.*.id"
+                display_fields: ["articles.*.title"]
+                search_fields: ["articles.*.title"]
+                hint: "যুক্ত করলে কার্ডে ক্লিক করলেই ওই লেখাটি খুলবে। ফাঁকা রাখলে কার্ডটি কেবল ছবি হিসেবে থাকবে।"
               - { name: "from", label: "রঙ (উপরে)", widget: "color", default: "#064E3B", required: false }
               - { name: "to", label: "রঙ (নিচে)", widget: "color", default: "#0F5132", required: false }
           - name: "media"
@@ -370,8 +388,6 @@ collections:
           - { name: "phone", label: "ফোন", widget: "string" }
           - { name: "address", label: "ঠিকানা", widget: "text" }
           - { name: "price_single", label: "এক সংখ্যার দাম (৳)", widget: "number", value_type: "int" }
-          - { name: "price_yearly", label: "বার্ষিক গ্রাহক ফি (৳)", widget: "number", value_type: "int" }
-          - { name: "price_bundle", label: "১০ কপি বান্ডিলের দাম (৳)", widget: "number", value_type: "int" }
           - { name: "order_note", label: "অর্ডার ব্যানারের লেখা", widget: "text" }
           - { name: "donate_note", label: "অনুদান সেকশনের লেখা", widget: "text" }
           - name: "payments"

@@ -217,9 +217,9 @@ function applySite(){
   if (SITE.phone){ const p = $('#ctPhone'); p.href = 'tel:' + SITE.phone.replace(/[^\d+]/g,''); p.textContent = bn(SITE.phone); }
   if (SITE.address) $('#ctAddress').innerHTML = esc(SITE.address).replace(/\n/g,'<br>');
 
-  const s = SITE.price_single ?? 120, y = SITE.price_yearly ?? 450;
+  const s = SITE.price_single ?? 120;
   $('#orderNote').textContent =
-    `${SITE.order_note || ''} এক সংখ্যা ৳${bn(s)}, বার্ষিক (৪ সংখ্যা) ৳${bn(y)} — কুরিয়ার খরচসহ।`;
+    `${SITE.order_note || ''} এক সংখ্যা ৳${bn(s)} — কুরিয়ার খরচসহ।`;
   if (SITE.donate_note) $('#donateNote').textContent = SITE.donate_note;
 }
 
@@ -421,6 +421,15 @@ function renderFilters(){
 /* =========================================================================
    বিভাগ, সংখ্যা, লেখক, মিডিয়া, এজেন্ট
    ========================================================================= */
+function renderNavIssues(){
+  const pub = ISSUES.filter(i => i.published).reverse();
+  const rows = pub.map(i =>
+    `<li><a href="#articles" data-issueread="${i.id}">${esc(i.label)}<span>${esc(i.greg)}</span></a></li>`).join('');
+  $('#navIssues').innerHTML =
+    (rows || '<li><span class="nav__sub-empty">এখনও কোনো সংখ্যা প্রকাশিত হয়নি</span></li>') +
+    `<li class="nav__sub-all"><a href="#archive">সব সংখ্যা দেখুন →</a></li>`;
+}
+
 function renderCats(){
   $('#navCats').innerHTML = CATS.map(c => `<li><a href="#articles" data-jumpcat="${c.id}">${esc(c.name)}</a></li>`).join('');
   $('#catGrid').innerHTML = CATS.map(c => {
@@ -440,11 +449,10 @@ const isPaid = i => Number(i.pdf_price) > 0;
 
 function pdfButton(i){
   if (!isPaid(i)) return `<button class="btn btn--line" data-issuepdf="${i.id}">পিডিএফ</button>`;
-  if (!window.AD?.enabled) return `<button class="btn btn--line" disabled>পিডিএফ ৳${bn(i.pdf_price)}</button>`;
-  const st = AD.user ? AD.issueStatus(i.id) : null;
+  const st = (window.AD?.enabled && AD.user) ? AD.issueStatus(i.id) : null;
   if (st === 'approved') return `<button class="btn btn--green" data-download="${i.id}">পিডিএফ নামান</button>`;
   if (st === 'pending')  return `<button class="btn btn--line" disabled>যাচাই চলছে…</button>`;
-  return `<button class="btn btn--line" data-buy="${i.id}">পিডিএফ কিনুন ৳${bn(i.pdf_price)}</button>`;
+  return `<button class="btn btn--line" data-issuepdf="${i.id}">পিডিএফ ৳${bn(i.pdf_price)}</button>`;
 }
 
 async function downloadIssue(issueId){
@@ -539,20 +547,22 @@ function renderAuthors(){
 
 function renderMediaEtc(){
   $('#infoGrid').innerHTML = INFOGRAPHICS.map((g, i) => {
+    const linked = g.article && ARTICLES.some(a => a.id === g.article);
     const art = g.image
       ? `<div class="info__art info__art--img"><img src="${esc(g.image)}" alt="${esc(g.title)}" loading="lazy"></div>`
       : `<div class="info__art" style="background:linear-gradient(155deg,${g.from || '#064E3B'},${g.to || '#0F5132'})">
            <p>${esc(g.title)}<small>${esc(g.sub)}</small></p></div>`;
-    return `<div class="info">${art}
+    return `<article class="info${linked ? ' info--linked' : ''}"${linked ? ` data-open="${g.article}" tabindex="0" role="button" aria-label="${esc(g.title)}"` : ''}>
+      ${art}
       <div class="info__bar">
-        <span>দাওয়াহ কার্ড ${bn(i+1)}</span>
+        <span>${linked ? 'বিস্তারিত পড়ুন →' : `দাওয়াহ কার্ড ${bn(i+1)}`}</span>
         <span class="card__share">
           <button class="shr" data-infoshare="whatsapp" data-i="${i}" aria-label="হোয়াটসঅ্যাপে শেয়ার">${shareIcon('whatsapp')}</button>
           <button class="shr" data-infoshare="facebook" data-i="${i}" aria-label="ফেসবুকে শেয়ার">${shareIcon('facebook')}</button>
           <button class="shr" data-infoshare="copy" data-i="${i}" aria-label="লেখা কপি">${shareIcon('copy')}</button>
         </span>
       </div>
-    </div>`;
+    </article>`;
   }).join('');
 
   $('#mediaList').innerHTML = MEDIA.map(m => {
@@ -698,48 +708,65 @@ function bookmarkIcon(id){
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${on ? BOOKMARK_ON : BOOKMARK_OFF}"/></svg>`;
 }
 
-/* ---- পিডিএফ প্রিভিউ ---- */
-function pagePlate(issue, n){
-  if (n === 0) return coverSVG(issue);
+/* ---- পিডিএফ প্রিভিউ — প্রচ্ছদ, প্রিভিউ পৃষ্ঠা (থাকলে), সূচিপত্র ---- */
+function issuePages(issue){
+  const pages = [{ kind:'cover' }];
+  (issue.preview || []).forEach(p => {
+    const src = typeof p === 'string' ? p : (p && p.img);
+    if (src) pages.push({ kind:'img', src });
+  });
+  if (pages.length === 1 && ARTICLES.some(a => a.issue === issue.id)) pages.push({ kind:'toc' });
+  return pages;
+}
+
+function pagePlate(issue, page){
+  if (page.kind === 'cover') return coverSVG(issue);
+  if (page.kind === 'img')
+    return `<img src="${esc(page.src)}" alt="পত্রিকার পৃষ্ঠা" style="width:100%;height:100%;object-fit:cover;display:block">`;
+
   const accent = issue.accent || '#D97706';
   const arts = ARTICLES.filter(a => a.issue === issue.id);
-  if (n === 1){
-    const rows = arts.slice(0, 9).map((a, k) =>
-      `<text x="34" y="${104 + k*29}" fill="#1F2937" font-family="SolaimanLipi, sans-serif" font-size="12.5">${bn(k+1)}. ${esc(a.title.slice(0, 42))}…</text>`).join('');
-    return `<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="সূচিপত্র">
-      <rect width="300" height="400" fill="#F8FAF8"/>
-      <rect x="0" y="0" width="300" height="6" fill="${accent}"/>
-      <text x="34" y="62" fill="#064E3B" font-family="SolaimanLipi, sans-serif" font-size="24" font-weight="700">সূচিপত্র</text>
-      <line x1="34" y1="76" x2="266" y2="76" stroke="#DFE8E2"/>
-      ${rows}
-    </svg>`;
-  }
-  return `<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="সম্পাদকীয়">
+  const rows = arts.slice(0, 9).map((a, k) =>
+    `<text x="34" y="${104 + k*29}" fill="#1F2937" font-family="SolaimanLipi, sans-serif" font-size="12.5">${bn(k+1)}. ${esc(a.title.slice(0, 42))}…</text>`).join('');
+  return `<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="সূচিপত্র">
     <rect width="300" height="400" fill="#F8FAF8"/>
-    <text x="34" y="58" fill="#B45309" font-family="SolaimanLipi, sans-serif" font-size="12">সম্পাদকীয়</text>
-    <text x="34" y="86" fill="#064E3B" font-family="SolaimanLipi, sans-serif" font-size="20" font-weight="700">যে কথা বলার জন্য</text>
-    <text x="34" y="110" fill="#064E3B" font-family="SolaimanLipi, sans-serif" font-size="20" font-weight="700">এই আয়োজন</text>
-    ${Array.from({length:11}, (_,k) => `<rect x="34" y="${138 + k*20}" width="${k===10?150:232}" height="7" rx="3" fill="#1F2937" opacity=".16"/>`).join('')}
-    <line x1="34" y1="368" x2="266" y2="368" stroke="#DFE8E2"/>
-    <text x="266" y="386" text-anchor="end" fill="#5A6B63" font-family="SolaimanLipi, sans-serif" font-size="11">${esc(issue.label)}</text>
+    <rect x="0" y="0" width="300" height="6" fill="${accent}"/>
+    <text x="34" y="62" fill="#064E3B" font-family="SolaimanLipi, sans-serif" font-size="24" font-weight="700">সূচিপত্র</text>
+    <line x1="34" y1="76" x2="266" y2="76" stroke="#DFE8E2"/>
+    ${rows}
   </svg>`;
 }
 
 function openPdf(issueId){
   const issue = issueById(issueId);
-  let page = 0; const total = 3;
+  const pages = issuePages(issue);
+  let page = 0; const total = pages.length;
+  const sample = issue.pdf
+    ? `<a class="btn btn--ghost" href="${esc(issue.pdf)}" download>
+         <svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16"/></svg>
+         শর্ট পিডিএফ নামান</a>`
+    : '';
+
   let dl;
   if (isPaid(issue)){
     const st = (window.AD?.enabled && AD.user) ? AD.issueStatus(issue.id) : null;
-    if (st === 'approved')
-      dl = `<button class="btn btn--gold btn--lg" data-download="${issue.id}" style="justify-self:center">
-              <svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16"/></svg>
-              সম্পূর্ণ পিডিএফ নামান</button>`;
-    else if (st === 'pending')
-      dl = `<p class="pdfv__note">আপনার অর্ডারটি যাচাই করা হচ্ছে। অনুমোদনের পর এখানেই নামানোর বোতাম আসবে।</p>`;
-    else
-      dl = `<button class="btn btn--gold btn--lg" data-buy="${issue.id}" style="justify-self:center">
-              পিডিএফ কিনুন — ৳${bn(issue.pdf_price)}</button>`;
+    if (st === 'approved'){
+      dl = `<div class="pdfv__acts">
+              ${sample}
+              <button class="btn btn--gold btn--lg" data-download="${issue.id}">
+                <svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16"/></svg>
+                সম্পূর্ণ পিডিএফ নামান</button>
+            </div>`;
+    } else if (st === 'pending'){
+      dl = `<div class="pdfv__acts">${sample}</div>
+            <p class="pdfv__note">আপনার অর্ডারটি যাচাই করা হচ্ছে। অনুমোদনের পর এখানেই সম্পূর্ণ পিডিএফ নামানোর বোতাম আসবে।</p>`;
+    } else {
+      dl = `<div class="pdfv__acts">
+              ${sample}
+              <button class="btn btn--gold btn--lg" data-buy="${issue.id}">সম্পূর্ণ পিডিএফ কিনুন — ৳${bn(issue.pdf_price)}</button>
+            </div>
+            <p class="pdfv__note">${issue.pdf ? 'শর্ট পিডিএফে শুরুর কয়েক পৃষ্ঠা রয়েছে। ' : ''}সম্পূর্ণ সংখ্যাটি কিনে নিলে আপনার অ্যাকাউন্টে স্থায়ীভাবে যুক্ত হয়ে যাবে — যতবার খুশি নামাতে পারবেন।</p>`;
+    }
   } else {
     dl = issue.pdf
       ? `<a class="btn btn--gold btn--lg" href="${esc(issue.pdf)}" download style="justify-self:center">
@@ -753,41 +780,38 @@ function openPdf(issueId){
     <p class="art__meta">${esc(issue.hijri)} ॥ ${esc(issue.greg)}${issue.pages ? ` • ${bn(issue.pages)} পৃষ্ঠা` : ''}</p>
     <div class="pdfv">
       <div class="pdfv__stage"><div class="cover" id="pdfPlate"></div></div>
-      <div class="pdfv__nav">
+      ${total > 1 ? `<div class="pdfv__nav">
         <button id="pdfPrev" aria-label="আগের পৃষ্ঠা"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
         <span class="pdfv__page" id="pdfPage"></span>
         <button id="pdfNext" aria-label="পরের পৃষ্ঠা"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
-      </div>
+      </div>` : ''}
       ${dl}
     </div>`);
 
   const draw = () => {
-    $('#pdfPlate').innerHTML = pagePlate(issue, page);
-    $('#pdfPage').textContent = `পৃষ্ঠা ${bn(page + 1)} / ${bn(total)}`;
-    $('#pdfPrev').disabled = page === 0;
-    $('#pdfNext').disabled = page === total - 1;
+    $('#pdfPlate').innerHTML = pagePlate(issue, pages[page]);
+    if (total > 1){
+      $('#pdfPage').textContent = `পৃষ্ঠা ${bn(page + 1)} / ${bn(total)}`;
+      $('#pdfPrev').disabled = page === 0;
+      $('#pdfNext').disabled = page === total - 1;
+    }
   };
-  $('#pdfPrev').onclick = () => { if (page > 0){ page--; draw(); } };
-  $('#pdfNext').onclick = () => { if (page < total - 1){ page++; draw(); } };
+  if (total > 1){
+    $('#pdfPrev').onclick = () => { if (page > 0){ page--; draw(); } };
+    $('#pdfNext').onclick = () => { if (page < total - 1){ page++; draw(); } };
+  }
   draw();
 }
 
 /* ---- অর্ডার ফর্ম (সাধারণ ও প্রি-অর্ডার) ---- */
 function openOrder(issue){
   const pre = !!issue;
-  const s = SITE.price_single ?? 120, y = SITE.price_yearly ?? 450, b = SITE.price_bundle ?? 1000;
+  const s = SITE.price_single ?? 120;
   const hint = PAYMENTS.map(p => `<strong>${esc(p.title)} ${bn(p.number)}</strong>`).join(' ॥ ');
-  const opts = pre
-    ? `<option>${esc(issue.label)} — প্রি-অর্ডার ৳${bn(s)}</option>
-       <option>বার্ষিক গ্রাহক (৪ সংখ্যা) — ৳${bn(y)}</option>
-       <option>১০ কপি বান্ডিল (মাদরাসা/মসজিদ) — ৳${bn(b)}</option>`
-    : `<option>বর্তমান সংখ্যা — ৳${bn(s)}</option>
-       <option>বার্ষিক গ্রাহক (৪ সংখ্যা) — ৳${bn(y)}</option>
-       <option>১০ কপি বান্ডিল (মাদরাসা/মসজিদ) — ৳${bn(b)}</option>`;
 
   openModal(`
     <h2 class="art__h" id="modalTitle">${pre ? 'প্রি-অর্ডার' : 'ছাপা কপির অর্ডার'}</h2>
-    <p class="art__meta">${pre ? esc(issue.label) + ' ॥ ' + esc(issue.greg) : `এক সংখ্যা ৳${bn(s)} • বার্ষিক ৪ সংখ্যা ৳${bn(y)}`} • কুরিয়ার খরচ অন্তর্ভুক্ত</p>
+    <p class="art__meta">${pre ? esc(issue.label) + ' ॥ ' + esc(issue.greg) : 'বর্তমান সংখ্যা'} • ৳${bn(s)} • কুরিয়ার খরচ অন্তর্ভুক্ত</p>
     <form class="ordform" id="orderForm" name="order" method="POST" data-netlify="true">
       <input type="hidden" name="form-name" value="order">
       <input type="hidden" name="dhoron" value="${pre ? 'প্রি-অর্ডার' : 'সাধারণ অর্ডার'}">
@@ -798,7 +822,9 @@ function openOrder(issue){
       </div>
       <label class="fld"><span>ঠিকানা</span><textarea name="thikana" rows="3" required placeholder="গ্রাম/বাসা, ডাকঘর, থানা, জেলা"></textarea></label>
       <div class="row">
-        <label class="fld"><span>কী নিতে চান</span><select name="package">${opts}</select></label>
+        <label class="fld"><span>কত কপি</span>
+          <input name="copies" type="number" min="1" max="100" value="1" required>
+        </label>
         <label class="fld"><span>পেমেন্ট মাধ্যম</span>
           <select name="payment">${PAYMENTS.map(p => `<option>${esc(p.title)}</option>`).join('')}<option>ক্যাশ অন ডেলিভারি</option></select>
         </label>
@@ -1073,6 +1099,7 @@ function renderAll(){
   renderArticles();
   renderAds();
   renderCats();
+  renderNavIssues();
   renderIssues();
   renderAuthors();
   renderMediaEtc();
@@ -1089,12 +1116,25 @@ function wireUI(){
   const nav = $('#mainNav'), navBtn = $('#navToggle');
   navBtn.onclick = () => navBtn.setAttribute('aria-expanded', nav.classList.toggle('is-open'));
 
-  const subToggle = $('.nav__subtoggle'), sub = $('#navCats');
-  subToggle.onclick = e => {
-    e.stopPropagation();
-    subToggle.setAttribute('aria-expanded', sub.classList.toggle('is-open'));
-  };
-  document.addEventListener('click', () => { sub.classList.remove('is-open'); subToggle.setAttribute('aria-expanded', false); });
+  const subs = $$('.nav__subtoggle').map(btn => ({ btn, menu: $('#' + btn.dataset.sub) }));
+  const closeSubs = except => subs.forEach(({ btn, menu }) => {
+    if (menu === except) return;
+    menu.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', false);
+  });
+  subs.forEach(({ btn, menu }) => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      closeSubs(menu);
+      btn.setAttribute('aria-expanded', menu.classList.toggle('is-open'));
+    };
+    if (matchMedia('(min-width: 761px)').matches){
+      const li = btn.closest('.nav__has-sub');
+      li.addEventListener('mouseenter', () => { closeSubs(menu); menu.classList.add('is-open'); btn.setAttribute('aria-expanded', true); });
+      li.addEventListener('mouseleave', () => { menu.classList.remove('is-open'); btn.setAttribute('aria-expanded', false); });
+    }
+  });
+  document.addEventListener('click', () => closeSubs());
 
   const sbar = $('#searchbar'), sinput = $('#searchInput');
   $('#searchToggle').onclick = () => {
@@ -1114,7 +1154,8 @@ function wireUI(){
     const ishare = e.target.closest('[data-infoshare]');
     if (ishare){
       const g = INFOGRAPHICS[+ishare.dataset.i];
-      const url = location.origin + location.pathname + '#media';
+      const url = location.origin + location.pathname +
+        (g.article && ARTICLES.some(a => a.id === g.article) ? `#/lekha/${g.article}` : '#media');
       if (ishare.dataset.infoshare === 'copy'){
         navigator.clipboard?.writeText(`${g.title} — ${g.sub}\n${url}`).then(() => toast('কার্ডের লেখা কপি হয়েছে'));
       } else {
@@ -1216,7 +1257,9 @@ function wireUI(){
       else if (!$('#modal').hidden) closeModal();
       else if (!sbar.hidden) sbar.hidden = true;
     }
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.card')){ e.preventDefault(); openArticle(e.target.dataset.open); }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.card, .info--linked')){
+      e.preventDefault(); openArticle(e.target.dataset.open);
+    }
   });
 
   $('#orderOpen').onclick = () => openOrder(null);
@@ -1232,16 +1275,30 @@ function wireUI(){
   wireForm($('#lekhaForm'), $('#lekhaNote'), 'লেখাটি পৌঁছেছে। সম্পাদনা পরিষদ যাচাই করে ইমেইলে জানাবে, ইনশাআল্লাহ।');
 
   const toTop = $('#toTop'), head = $('#head');
+
+  // মেনুতে যেসব অংশের লিংক আছে, সেগুলো পাতায় যে ক্রমে আছে সেভাবেই সাজাই
+  const navIds = $$('.nav__link[href^="#"]')
+    .map(l => l.getAttribute('href').slice(1))
+    .filter(id => document.getElementById(id));
+
   const onScroll = () => {
     toTop.hidden = scrollY < 600;
     head.classList.toggle('is-stuck', scrollY > 10);
-    const y = scrollY + 140;
-    let cur = 'home';
-    ['home','about','archive','authors','qa','submit','outlets','contact'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el && el.offsetTop <= y) cur = id;
-    });
-    $$('.nav__link[href^="#"]').forEach(l => l.classList.toggle('is-active', l.getAttribute('href') === '#' + cur));
+
+    const y = scrollY + (head.offsetHeight || 120) + 40;
+    const spots = navIds
+      .map(id => ({ id, top: document.getElementById(id).getBoundingClientRect().top + scrollY }))
+      .sort((a, b) => a.top - b.top);
+
+    let cur = spots.length ? spots[0].id : 'home';
+    spots.forEach(s => { if (s.top <= y) cur = s.id; });
+
+    // পাতার একদম নিচে পৌঁছালে শেষ অংশটিই সক্রিয়
+    if (scrollY + innerHeight >= document.body.scrollHeight - 4 && spots.length)
+      cur = spots[spots.length - 1].id;
+
+    $$('.nav__link[href^="#"]').forEach(l =>
+      l.classList.toggle('is-active', l.getAttribute('href') === '#' + cur));
   };
   addEventListener('scroll', onScroll, { passive:true });
   onScroll();
