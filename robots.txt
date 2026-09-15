@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ad-dawah.netlify.app/sitemap.xml
+Sitemap: https://   addawahmagazine.netlify.app/sitemap.xml

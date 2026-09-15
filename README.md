@@ -52,7 +52,7 @@ Build command ফাঁকা, Publish directory `.` — Deploy চাপুন�
 
 1. **গিটহাবে**: Settings → Developer settings → OAuth Apps → **New OAuth App**
    - Application name: `Ad-Dawah CMS`
-   - Homepage URL: আপনার নেটলিফাই ঠিকানা, যেমন `https://ad-dawah.netlify.app`
+   - Homepage URL: আপনার নেটলিফাই ঠিকানা, যেমন `https://   addawahmagazine.netlify.app`
    - Authorization callback URL: `https://api.netlify.com/auth/done`
    - তৈরি করে **Client ID** ও **Client Secret** কপি করুন।
 2. **নেটলিফাইতে**: Site configuration → Access & security → **OAuth** → Install provider → GitHub —
