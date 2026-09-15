@@ -10,11 +10,11 @@ backend:
   repo: addawahmagazine/Ad-Dawah
   branch: main
   commit_messages:
-    create: 'নতুন যোগ: {{collection}} “{{slug}}”'
-    update: 'সম্পাদনা: {{collection}} “{{slug}}”'
-    delete: 'মুছে ফেলা: {{collection}} “{{slug}}”'
-    uploadMedia: 'ফাইল আপলোড: {{path}}'
-    deleteMedia: 'ফাইল মুছে ফেলা: {{path}}'
+    create: 'নতুন যোগ: {{collection}} “{{slug}}” [skip ci]'
+    update: 'সম্পাদনা: {{collection}} “{{slug}}” [skip ci]'
+    delete: 'মুছে ফেলা: {{collection}} “{{slug}}” [skip ci]'
+    uploadMedia: 'ফাইল আপলোড: {{path}} [skip ci]'
+    deleteMedia: 'ফাইল মুছে ফেলা: {{path}} [skip ci]'
 
 local_backend: true
 
