@@ -181,6 +181,7 @@
           </button>
           <ul class="nav__sub" id="navCats"></ul>
         </li>
+        <li><a href="#authors" class="nav__link">লেখকবৃন্দ</a></li>
         <li class="nav__has-sub">
           <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navInfo" data-spy="infographics">ইনফোগ্রাফিক্স
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
@@ -190,9 +191,9 @@
             <li><a href="#infographs">ইনফোগ্রাফিক্স</a></li>
           </ul>
         </li>
-        <li><a href="#authors" class="nav__link">লেখকবৃন্দ</a></li>
         <li><a href="#audiovideo" class="nav__link">অডিও ও ভিডিও</a></li>
         <li><a href="#qa" class="nav__link">আপনার জিজ্ঞাসা</a></li>
+        <li><a href="#submit" class="nav__link">লেখা পাঠান</a></li>
         <li><a href="#about" class="nav__link">আমাদের সম্পর্কে</a></li>
         <li><a href="#outlets" class="nav__link">এজেন্ট ও মাকতাবা</a></li>
         <li><a href="#donate" class="nav__link">ফান্ড পাঠান</a></li>
@@ -323,8 +324,19 @@
   </div>
 </section>
 
+<!-- ===== AUTHORS ===== -->
+<section class="section section--tint" id="authors">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__h">লেখকবৃন্দ</h2>
+      <p class="sechead__p">যাঁদের কলমে সাজে আদ দাওয়াহ।</p>
+    </header>
+    <div class="authors" id="authorGrid"></div>
+  </div>
+</section>
+
 <!-- ===== INFOGRAPHICS: দাওয়াহ কার্ড + ইনফোগ্রাফিক্স ===== -->
-<section class="section section--tint" id="infographics">
+<section class="section" id="infographics">
   <div class="wrap">
     <header class="sechead">
       <h2 class="sechead__h">ইনফোগ্রাফিক্স</h2>
@@ -342,17 +354,6 @@
       <p class="demo-note" id="graphDemoNote" hidden></p>
       <div class="cards" id="infographGrid"></div>
     </div>
-  </div>
-</section>
-
-<!-- ===== AUTHORS ===== -->
-<section class="section" id="authors">
-  <div class="wrap">
-    <header class="sechead">
-      <h2 class="sechead__h">লেখকবৃন্দ</h2>
-      <p class="sechead__p">যাঁদের কলমে সাজে আদ দাওয়াহ।</p>
-    </header>
-    <div class="authors" id="authorGrid"></div>
   </div>
 </section>
 
@@ -408,7 +409,7 @@
 <!-- ===== SUBMIT ARTICLE ===== -->
 <section class="section section--tint" id="submit">
   <div class="wrap submit">
-    <div class="submit__intro">
+    <div class="submit__intro" id="submitRules">
       <h2 class="sechead__h" id="submitTitle">আমাদের জন্য লিখুন</h2>
       <p id="submitIntro"></p>
     </div>
@@ -506,10 +507,9 @@
         <li><a href="#archive">সকল সংখ্যা</a></li>
         <li><a href="#qa">আপনার জিজ্ঞাসা</a></li>
         <li><a href="#submit">লেখা পাঠান</a></li>
+        <li><a href="#submitRules">লেখা পাঠানোর নিয়ম</a></li>
         <li><a href="#outlets">এজেন্ট ও মাকতাবা</a></li>
-        <li><a href="#authors">লেখকবৃন্দ</a></li>
-        <li><a href="#donate">দাওয়াতি ফান্ড</a></li>
-        <li><a href="#about">লেখা পাঠানোর নিয়ম</a></li>
+        <li><a href="#donate">ফান্ড পাঠান</a></li>
         <li><a href="admin/">সম্পাদনা প্যানেল</a></li>
       </ul>
     </div>
@@ -528,6 +528,8 @@
     <p>© <span class="bn-num" id="yearNow">2026</span> আদ দাওয়াহ। সর্বস্বত্ব সংরক্ষিত।</p>
     <p>লেখা পুনঃপ্রকাশে সূত্র উল্লেখ করুন।</p>
     <p class="stats" id="visitStats" hidden></p>
+    <p class="foot__dev">ওয়েবসাইট সম্পর্কে কোনো অভিযোগ বা পরামর্শ থাকলে যোগাযোগ করুন —
+      <a href="https://www.facebook.com/irfannabil99" target="_blank" rel="noopener">ইরফান নাবিল</a></p>
   </div>
 </footer>
 
@@ -559,7 +561,7 @@
     </span>
     <p class="qpop__text" id="qpopText"></p>
     <p class="qpop__src" id="qpopSrc"></p>
-    <button class="btn btn--gold" data-qclose>আলহামদুলিল্লাহ</button>
+    <button class="btn btn--gold" id="qpopOk" data-qclose>আলহামদুলিল্লাহ</button>
   </div>
 </div>
 

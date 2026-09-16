@@ -133,7 +133,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 
 .nav{grid-column:1/-1;margin-top:4px}
 .nav__list{display:flex;flex-wrap:wrap;gap:2px}
-.nav__link{display:inline-block;padding:9px 12px;font-size:15.5px;font-weight:500;color:var(--muted);text-decoration:none;background:none;border:0;border-radius:var(--r-pill);cursor:pointer;transition:background .2s,color .2s}
+.nav__link{display:inline-block;padding:9px 10px;font-size:15px;font-weight:500;color:var(--muted);text-decoration:none;background:none;border:0;border-radius:var(--r-pill);cursor:pointer;transition:background .2s,color .2s}
 .nav__link:hover{background:var(--brand-soft);color:var(--brand)}
 .nav__link.is-active{background:var(--brand);color:#fff}
 [data-theme="dark"] .nav__link.is-active{color:#07130F}
@@ -206,7 +206,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
    অর্ডার ব্যানার
    ========================================================================== */
 .order{background:var(--bg)}
-.order__in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px;padding:26px 32px;margin:0 0 8px;
+.order__in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px;padding:26px 32px;margin:0 auto 8px;
   background:var(--brand-softer);border:1px solid var(--line);border-radius:var(--r-l)}
 .order__h{font-size:25px;margin:0 0 4px}
 .order__text p{margin:0;color:var(--muted);max-width:70ch}
@@ -441,6 +441,9 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .sub input:focus{outline:none;border-color:var(--brand)}
 .foot__bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;border-top:1px solid var(--line);padding:20px 0;font-size:13.5px}
 .foot__bar p{margin:0}
+.foot__dev{flex-basis:100%;color:var(--muted)}
+.foot__dev a{color:var(--brand);font-weight:600;text-decoration:none;border-bottom:1px solid currentColor}
+.foot__dev a:hover{opacity:.8}
 
 /* ==========================================================================
    ভাসমান বোতাম
@@ -779,6 +782,10 @@ html, body{overflow-x:hidden;overflow-x:clip;max-width:100%}
 }
 
 
+/* ১২টি মেনু আইটেম — মাঝারি স্ক্রিনে আরও একটু ঘন */
+@media (min-width:1101px) and (max-width:1240px){
+  .nav__link{padding:9px 8px;font-size:14.5px}
+}
 /* মেনুতে আইটেম বেড়েছে — একটু ঘন করে সাজাই */
 @media (min-width:761px) and (max-width:1100px){
   .nav__link{padding:8px 12px;font-size:15px}

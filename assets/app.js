@@ -426,7 +426,7 @@ function renderNavIssues(){
   // মেনুতে শুধু সর্বশেষ ৩টি প্রকাশিত সংখ্যা, বাকিগুলো "সব সংখ্যা দেখুন"-এ
   const pub = ISSUES.filter(i => i.published).reverse().slice(0, 3);
   const rows = pub.map(i =>
-    `<li><a href="#articles" data-issueread="${i.id}">${esc(i.label)}<span>${esc(i.greg)}</span></a></li>`).join('');
+    `<li><a href="#archive" data-navpdf="${i.id}">${esc(i.label)}<span>${esc(i.greg)}</span></a></li>`).join('');
   $('#navIssues').innerHTML =
     (rows || '<li><span class="nav__sub-empty">এখনও কোনো সংখ্যা প্রকাশিত হয়নি</span></li>') +
     `<li class="nav__sub-all"><a href="#archive">সব সংখ্যা দেখুন →</a></li>`;
@@ -1057,6 +1057,9 @@ function showQuote(){
   const q = QUOTES.quotes[Math.floor(Math.random() * QUOTES.quotes.length)];
   $('#qpopText').textContent = q.text;
   $('#qpopSrc').textContent = q.source || '';
+  // বন্ধ করার বোতামে একেকবার একেক যিকির
+  const ZIKR = ['আলহামদুলিল্লাহ', 'আল্লাহু আকবার', 'সুবহানাল্লাহ'];
+  $('#qpopOk').textContent = ZIKR[Math.floor(Math.random() * ZIKR.length)];
   $('#quotePop').hidden = false;
   quoteShown = true;
   $('#quotePop').querySelector('.qpop__x').focus();
@@ -1224,6 +1227,15 @@ function wireUI(){
       $('#issueFilter').value = state.issue;
       renderArticles();
       $('#articles').scrollIntoView({ behavior:'smooth' });
+      nav.classList.remove('is-open'); sbar.hidden = true;   // মোবাইল মেনু বন্ধ
+      return;
+    }
+    // মেনুর "সকল সংখ্যা" থেকে সরাসরি সেই সংখ্যার পিডিএফ অংশ
+    const np = e.target.closest('[data-navpdf]');
+    if (np){
+      e.preventDefault();
+      nav.classList.remove('is-open'); sbar.hidden = true;
+      openPdf(np.dataset.navpdf);
       return;
     }
     const ip = e.target.closest('[data-issuepdf]');
