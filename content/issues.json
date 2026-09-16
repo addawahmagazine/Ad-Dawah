@@ -52,16 +52,16 @@
       "pdf_price": 25
     },
     {
-      "hijri": "যিলক্বদ ১৪৪৮",
+      "hijri": "রবিউল আউয়াল ১৪৪৮",
       "pages": 0,
       "bg": "#0B3F2C",
       "accent": "#D97706",
-      "greg": "মে ২০২৭",
-      "published": false,
-      "tagline": "প্রস্তুত হচ্ছে",
+      "greg": "আগস্ট ২০২৬",
+      "published": true,
+      "tagline": "",
       "pdf": "",
       "label": "বর্ষ ১, সংখ্যা ৪",
-      "cover": "",
+      "cover": "/uploads/y1n4-cover-.jpg",
       "id": "y1n4"
     }
   ]
