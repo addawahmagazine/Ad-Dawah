@@ -219,7 +219,7 @@ collections:
     label: "কার্ড ও মিডিয়া"
     files:
       - name: "media"
-        label: "দাওয়াহ কার্ড, অডিও-ভিডিও, প্রশ্নোত্তর"
+        label: "দাওয়াহ কার্ড, ইনফোগ্রাফিক্স, অডিও-ভিডিও, প্রশ্নোত্তর"
         file: "content/media.json"
         fields:
           - name: "infographics"
@@ -245,6 +245,33 @@ collections:
                 hint: "যুক্ত করলে কার্ডে ক্লিক করলেই ওই লেখাটি খুলবে। ফাঁকা রাখলে কার্ডটি কেবল ছবি হিসেবে থাকবে।"
               - { name: "from", label: "রঙ (উপরে)", widget: "color", default: "#064E3B", required: false }
               - { name: "to", label: "রঙ (নিচে)", widget: "color", default: "#0F5132", required: false }
+              - { name: "demo", label: "নমুনা (ডেমো)", widget: "boolean", default: false, required: false,
+                  hint: "টিক দিলে সাইটে 'নমুনা' হিসেবে দেখাবে — খোলা বা শেয়ার করা যাবে না। আসল কনটেন্টে টিক দেবেন না।" }
+          - name: "infographs"
+            label: "ইনফোগ্রাফিক্স"
+            label_singular: "নতুন ইনফোগ্রাফিক"
+            widget: "list"
+            summary: "{{fields.title}}"
+            collapsed: true
+            fields:
+              - { name: "image", label: "ইনফোগ্রাফিকের ছবি", widget: "image", required: false,
+                  hint: "ছবি দিলে সেটিই দেখাবে। না দিলে নিচের রঙ ও লেখা দিয়ে কার্ড তৈরি হবে।" }
+              - { name: "title", label: "শিরোনাম", widget: "text" }
+              - { name: "sub", label: "নিচের ছোট লাইন", widget: "string" }
+              - name: "article"
+                label: "কোন লেখার সঙ্গে যুক্ত"
+                widget: "relation"
+                required: false
+                collection: "articles"
+                file: "articles"
+                value_field: "articles.*.id"
+                display_fields: ["articles.*.title"]
+                search_fields: ["articles.*.title"]
+                hint: "যুক্ত করলে ক্লিক করলেই ওই লেখাটি খুলবে। ফাঁকা রাখলে এটি কেবল ছবি হিসেবে থাকবে।"
+              - { name: "from", label: "রঙ (উপরে)", widget: "color", default: "#064E3B", required: false }
+              - { name: "to", label: "রঙ (নিচে)", widget: "color", default: "#0F5132", required: false }
+              - { name: "demo", label: "নমুনা (ডেমো)", widget: "boolean", default: false, required: false,
+                  hint: "টিক দিলে সাইটে 'নমুনা' হিসেবে দেখাবে — খোলা বা শেয়ার করা যাবে না। আসল কনটেন্টে টিক দেবেন না।" }
           - name: "media"
             label: "অডিও ও ভিডিও"
             label_singular: "নতুন আইটেম"
@@ -257,6 +284,8 @@ collections:
               - { name: "length", label: "সময়", widget: "string", hint: "যেমন: ৪১ মিনিট" }
               - { name: "link", label: "ইউটিউব / অডিও লিংক", widget: "string", required: false,
                   hint: "আপলোড করা ফাইলের জন্য লিখুন /uploads/ফাইলের-নাম.mp3" }
+              - { name: "demo", label: "নমুনা (ডেমো)", widget: "boolean", default: false, required: false,
+                  hint: "টিক দিলে সাইটে 'নমুনা' হিসেবে দেখাবে — খোলা বা শেয়ার করা যাবে না। আসল কনটেন্টে টিক দেবেন না।" }
           - name: "qa"
             label: "নমুনা প্রশ্নোত্তর"
             label_singular: "নতুন প্রশ্নোত্তর"

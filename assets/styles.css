@@ -132,8 +132,8 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .head .brand__tag{display:none}
 
 .nav{grid-column:1/-1;margin-top:4px}
-.nav__list{display:flex;flex-wrap:wrap;gap:4px}
-.nav__link{display:inline-block;padding:9px 16px;font-size:15.5px;font-weight:500;color:var(--muted);text-decoration:none;background:none;border:0;border-radius:var(--r-pill);cursor:pointer;transition:background .2s,color .2s}
+.nav__list{display:flex;flex-wrap:wrap;gap:2px}
+.nav__link{display:inline-block;padding:9px 12px;font-size:15.5px;font-weight:500;color:var(--muted);text-decoration:none;background:none;border:0;border-radius:var(--r-pill);cursor:pointer;transition:background .2s,color .2s}
 .nav__link:hover{background:var(--brand-soft);color:var(--brand)}
 .nav__link.is-active{background:var(--brand);color:#fff}
 [data-theme="dark"] .nav__link.is-active{color:#07130F}
@@ -290,7 +290,24 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .media{margin-top:52px}
 .media__h{font-size:24px;margin:0 0 18px}
 .media__list{display:grid;gap:12px;margin:0;padding:0;list-style:none}
-.media__empty{color:var(--muted);margin:0}
+.media__empty{margin:0;padding:22px 20px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r-m)}
+.cards > .media__empty{grid-column:1/-1}
+
+/* ইনফোগ্রাফিক্স অংশের দুই ভাগ */
+.subsec + .subsec{margin-top:52px}
+.subsec__h{font-size:24px;margin:0 0 18px}
+
+/* নমুনা (ডেমো) কনটেন্ট */
+.demo-note{display:flex;gap:10px;align-items:flex-start;margin:0 0 18px;padding:12px 16px;
+  border-radius:var(--r-m);background:var(--brand-soft);color:var(--brand);font-size:14.5px;line-height:1.7}
+.demo-note::before{content:"ⓘ";font-weight:700;line-height:1.7}
+.info{position:relative}
+.info--demo, .mitem--demo .mitem__play{cursor:pointer}
+.info--demo .info__art{opacity:.82}
+.demo-tag{display:inline-block;padding:2px 10px;border-radius:var(--r-pill);font-size:12px;font-weight:600;
+  background:rgba(10,26,20,.62);color:#fff;white-space:nowrap}
+.info .demo-tag{position:absolute;top:12px;inset-inline-start:12px;z-index:1}
+.mitem .demo-tag{background:var(--brand-soft);color:var(--brand);margin-inline-start:8px;vertical-align:middle}
 .mitem{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m)}
 .mitem__play{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);flex:0 0 auto;border:0;cursor:pointer;text-decoration:none;transition:background .18s,color .18s}
 .mitem__play:hover{background:var(--brand);color:#fff}
@@ -597,7 +614,17 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
   .masthead__orn{width:min(160px,46vw)}
   .masthead__sub{font-size:12.5px;gap:10px}
   .masthead__sub::before,.masthead__sub::after{max-width:34px}
-  .head .brand__text{display:none}
+  /* মোবাইলেও স্ক্রল করলে মার্কের পাশে "আদ দাওয়াহ" লোগো দেখাবে */
+  .head .brand{gap:8px;min-width:0}
+  .head .brand__text{min-width:0;flex:1 1 auto}
+  .head .brand__logo{width:100%;max-width:112px}
+}
+@media (max-width:400px){
+  /* ছোট ফোনে লোগোর জন্য একটু জায়গা বাড়াই */
+  .head__tools{gap:4px}
+  .head .iconbtn{width:36px;height:36px;border-radius:10px}
+  .head .brand__mark{width:38px;height:38px;border-radius:11px}
+  .head .brand__mark svg{width:25px;height:25px}
 }
 @media print{ .masthead{display:none} }
 
@@ -608,7 +635,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 h1,h2,h3,h4,
 .hero__title,.sechead__h,.card__h,.mitem__t,.issue__h,.outlet__n,
 .deflist dd,.dcard__v,.qaitem .q,.sres b,.qpop__text,.hero__meta dd,
-.auth__av,.auth__n,.order__h,.pre__h,.art__h,.media__h,.catbox h3,
+.auth__av,.auth__n,.order__h,.pre__h,.art__h,.media__h,.subsec__h,.catbox h3,
 .about__side h3,.info__art p,.adcard__fallback,.foot h3,.art__body h3{
   font-family:var(--font-display);
   font-weight:700;

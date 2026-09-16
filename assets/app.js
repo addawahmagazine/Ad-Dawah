@@ -14,7 +14,7 @@ const HIJRI_MONTHS = ['মুহাররম','সফর','রবিউল আ�
 
 /* ---------- কনটেন্ট ---------- */
 let CATS = [], ISSUES = [], AUTHORS = [], ARTICLES = [];
-let INFOGRAPHICS = [], MEDIA = [], QA_RECENT = [], SITE = {}, PAYMENTS = [];
+let INFOGRAPHICS = [], INFOGRAPHS = [], MEDIA = [], QA_RECENT = [], SITE = {}, PAYMENTS = [];
 let ABOUT = {}, QUOTES = {}, ADS = [], OUTLETS = [], OUTLET_INTRO = '';
 
 const catById    = id => CATS.find(c => c.id === id)    || CATS[0]    || { name:'', color:'#0F5132' };
@@ -46,7 +46,8 @@ async function loadContent(){
   AUTHORS      = auths.authors   || [];
   ISSUES       = issues.issues   || [];
   ARTICLES     = arts.articles   || [];
-  INFOGRAPHICS = media.infographics || [];
+  INFOGRAPHICS = media.infographics || [];   // দাওয়াহ কার্ড
+  INFOGRAPHS   = media.infographs || [];     // ইনফোগ্রাফিক্স
   MEDIA        = media.media || [];
   QA_RECENT    = media.qa || [];
 
@@ -422,7 +423,8 @@ function renderFilters(){
    বিভাগ, সংখ্যা, লেখক, মিডিয়া, এজেন্ট
    ========================================================================= */
 function renderNavIssues(){
-  const pub = ISSUES.filter(i => i.published).reverse();
+  // মেনুতে শুধু সর্বশেষ ৩টি প্রকাশিত সংখ্যা, বাকিগুলো "সব সংখ্যা দেখুন"-এ
+  const pub = ISSUES.filter(i => i.published).reverse().slice(0, 3);
   const rows = pub.map(i =>
     `<li><a href="#articles" data-issueread="${i.id}">${esc(i.label)}<span>${esc(i.greg)}</span></a></li>`).join('');
   $('#navIssues').innerHTML =
@@ -545,34 +547,66 @@ function renderAuthors(){
   }).join('');
 }
 
-function renderMediaEtc(){
-  $('#infoGrid').innerHTML = INFOGRAPHICS.map((g, i) => {
-    const linked = g.article && ARTICLES.some(a => a.id === g.article);
+/* নমুনা (ডেমো) আইটেম — CMS-এ "নমুনা" টিক দেওয়া থাকলে */
+const DEMO_MSG = 'এটি নমুনা হিসেবে দেওয়া, তাই খোলা যাবে না। শিগগিরই আসল কনটেন্ট যুক্ত হবে, ইনশাআল্লাহ।';
+const isDemo = x => x && x.demo === true;
+
+function setDemoNote(sel, list, what){
+  const el = $(sel);
+  if (!el) return;
+  el.hidden = !list.some(isDemo);
+  el.textContent = `এই অংশে এখনো আসল ${what} যুক্ত হয়নি। নিচেরগুলো নমুনা হিসেবে দেওয়া, তাই খোলা বা শেয়ার করা যাবে না। শিগগিরই আসল ${what} যুক্ত করা হবে, ইনশাআল্লাহ।`;
+}
+
+function renderInfoList(list, key, label, emptyMsg){
+  if (!list.length) return `<p class="media__empty">${emptyMsg}</p>`;
+  return list.map((g, i) => {
+    const demo = isDemo(g);
+    const linked = !demo && g.article && ARTICLES.some(a => a.id === g.article);
     const art = g.image
       ? `<div class="info__art info__art--img"><img src="${esc(g.image)}" alt="${esc(g.title)}" loading="lazy"></div>`
       : `<div class="info__art" style="background:linear-gradient(155deg,${g.from || '#064E3B'},${g.to || '#0F5132'})">
-           <p>${esc(g.title)}<small>${esc(g.sub)}</small></p></div>`;
-    return `<article class="info${linked ? ' info--linked' : ''}"${linked ? ` data-open="${g.article}" tabindex="0" role="button" aria-label="${esc(g.title)}"` : ''}>
+           <p>${esc(g.title)}<small>${esc(g.sub || '')}</small></p></div>`;
+    const attrs = linked
+      ? ` data-open="${g.article}" tabindex="0" role="button" aria-label="${esc(g.title)}"`
+      : demo ? ` data-demo tabindex="0" role="button" aria-label="${esc(g.title)} (নমুনা)"` : '';
+    const share = demo ? '' : `<span class="card__share">
+          <button class="shr" data-infoshare="whatsapp" data-list="${key}" data-i="${i}" aria-label="হোয়াটসঅ্যাপে শেয়ার">${shareIcon('whatsapp')}</button>
+          <button class="shr" data-infoshare="facebook" data-list="${key}" data-i="${i}" aria-label="ফেসবুকে শেয়ার">${shareIcon('facebook')}</button>
+          <button class="shr" data-infoshare="copy" data-list="${key}" data-i="${i}" aria-label="লেখা কপি">${shareIcon('copy')}</button>
+        </span>`;
+    return `<article class="info${linked ? ' info--linked' : ''}${demo ? ' info--demo' : ''}"${attrs}>
+      ${demo ? '<span class="demo-tag">নমুনা</span>' : ''}
       ${art}
       <div class="info__bar">
-        <span>${linked ? 'বিস্তারিত পড়ুন →' : `দাওয়াহ কার্ড ${bn(i+1)}`}</span>
-        <span class="card__share">
-          <button class="shr" data-infoshare="whatsapp" data-i="${i}" aria-label="হোয়াটসঅ্যাপে শেয়ার">${shareIcon('whatsapp')}</button>
-          <button class="shr" data-infoshare="facebook" data-i="${i}" aria-label="ফেসবুকে শেয়ার">${shareIcon('facebook')}</button>
-          <button class="shr" data-infoshare="copy" data-i="${i}" aria-label="লেখা কপি">${shareIcon('copy')}</button>
-        </span>
+        <span>${linked ? 'বিস্তারিত পড়ুন →' : `${label} ${bn(i+1)}`}</span>
+        ${share}
       </div>
     </article>`;
   }).join('');
+}
+
+function renderMediaEtc(){
+  $('#infoGrid').innerHTML = renderInfoList(INFOGRAPHICS, 'card', 'দাওয়াহ কার্ড',
+    'এই অংশে এখনো কোনো দাওয়াহ কার্ড যুক্ত হয়নি। শিগগিরই যোগ করা হবে, ইনশাআল্লাহ।');
+  $('#infographGrid').innerHTML = renderInfoList(INFOGRAPHS, 'graph', 'ইনফোগ্রাফিক',
+    'এই অংশে এখনো কোনো ইনফোগ্রাফিক যুক্ত হয়নি। শিগগিরই যোগ করা হবে, ইনশাআল্লাহ।');
+  setDemoNote('#cardDemoNote', INFOGRAPHICS, 'দাওয়াহ কার্ড');
+  setDemoNote('#graphDemoNote', INFOGRAPHS, 'ইনফোগ্রাফিক');
+  setDemoNote('#mediaDemoNote', MEDIA, 'অডিও ও ভিডিও');
 
   $('#mediaList').innerHTML = !MEDIA.length
-    ? '<li class="media__empty">নতুন অডিও ও ভিডিও শিগগিরই যোগ হবে, ইনশাআল্লাহ।</li>'
+    ? '<li class="media__empty">এই অংশে এখনো কোনো অডিও বা ভিডিও যুক্ত হয়নি। শিগগিরই যোগ করা হবে, ইনশাআল্লাহ।</li>'
     : MEDIA.map(m => {
-    const play = m.link
-      ? `<a class="mitem__play" href="${esc(m.link)}" target="_blank" rel="noopener" aria-label="চালান"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></a>`
-      : `<button class="mitem__play" aria-label="চালান"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></button>`;
-    return `<li class="mitem">${play}
-      <div><p class="mitem__t">${esc(m.title)}</p><p class="mitem__m">${esc(m.meta)}</p></div>
+    const demo = isDemo(m);
+    const icon = '<svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg>';
+    const play = demo
+      ? `<button class="mitem__play" data-demo aria-label="চালান (নমুনা)">${icon}</button>`
+      : m.link
+        ? `<a class="mitem__play" href="${esc(m.link)}" target="_blank" rel="noopener" aria-label="চালান">${icon}</a>`
+        : `<button class="mitem__play" aria-label="চালান">${icon}</button>`;
+    return `<li class="mitem${demo ? ' mitem--demo' : ''}">${play}
+      <div><p class="mitem__t">${esc(m.title)}${demo ? '<span class="demo-tag">নমুনা</span>' : ''}</p><p class="mitem__m">${esc(m.meta)}</p></div>
       <span class="mitem__len">${esc(m.length)}</span>
     </li>`;
   }).join('');
@@ -1054,6 +1088,7 @@ function wireForm(form, note, okMsg){
 const PAGES = [
   { t:'আমাদের সম্পর্কে', s:'সম্পাদনা পরিষদ ও নীতিমালা', h:'#about' },
   { t:'সকল সংখ্যা', s:'আর্কাইভ', h:'#archive' },
+  { t:'ইনফোগ্রাফিক্স', s:'দাওয়াহ কার্ড ও ইনফোগ্রাফিক', h:'#infographics' },
   { t:'অডিও ও ভিডিও', s:'আলোচনা ও পাঠচক্র', h:'#audiovideo' },
   { t:'আপনার জিজ্ঞাসা', s:'প্রশ্ন পাঠান', h:'#qa' },
   { t:'লেখা পাঠান', s:'আমাদের জন্য লিখুন', h:'#submit' },
@@ -1154,13 +1189,16 @@ function wireUI(){
     const share = e.target.closest('[data-share]');
     if (share){ e.stopPropagation(); doShare(share.dataset.share, ARTICLES.find(a => a.id === share.dataset.id)); return; }
 
+    const demoEl = e.target.closest('[data-demo]');
+    if (demoEl){ toast(DEMO_MSG); return; }
+
     const ishare = e.target.closest('[data-infoshare]');
     if (ishare){
-      const g = INFOGRAPHICS[+ishare.dataset.i];
+      const g = (ishare.dataset.list === 'graph' ? INFOGRAPHS : INFOGRAPHICS)[+ishare.dataset.i];
       const url = location.origin + location.pathname +
-        (g.article && ARTICLES.some(a => a.id === g.article) ? `#/lekha/${g.article}` : '#media');
+        (g.article && ARTICLES.some(a => a.id === g.article) ? `#/lekha/${g.article}` : '#infographics');
       if (ishare.dataset.infoshare === 'copy'){
-        navigator.clipboard?.writeText(`${g.title} — ${g.sub}\n${url}`).then(() => toast('কার্ডের লেখা কপি হয়েছে'));
+        navigator.clipboard?.writeText(`${g.title}${g.sub ? ' — ' + g.sub : ''}\n${url}`).then(() => toast('কার্ডের লেখা কপি হয়েছে'));
       } else {
         window.open(shareURL(ishare.dataset.infoshare, url, g.title), '_blank', 'noopener,width=680,height=620');
       }
@@ -1260,7 +1298,9 @@ function wireUI(){
       else if (!$('#modal').hidden) closeModal();
       else if (!sbar.hidden) sbar.hidden = true;
     }
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.card, .info--linked')){
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.info--demo')){
+      e.preventDefault(); toast(DEMO_MSG);
+    } else if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.card, .info--linked')){
       e.preventDefault(); openArticle(e.target.dataset.open);
     }
   });

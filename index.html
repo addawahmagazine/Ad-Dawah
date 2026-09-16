@@ -181,6 +181,15 @@
           </button>
           <ul class="nav__sub" id="navCats"></ul>
         </li>
+        <li class="nav__has-sub">
+          <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navInfo" data-spy="infographics">ইনফোগ্রাফিক্স
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <ul class="nav__sub" id="navInfo">
+            <li><a href="#dawahcards">দাওয়াহ কার্ড</a></li>
+            <li><a href="#infographs">ইনফোগ্রাফিক্স</a></li>
+          </ul>
+        </li>
         <li><a href="#authors" class="nav__link">লেখকবৃন্দ</a></li>
         <li><a href="#audiovideo" class="nav__link">অডিও ও ভিডিও</a></li>
         <li><a href="#qa" class="nav__link">আপনার জিজ্ঞাসা</a></li>
@@ -252,7 +261,7 @@
       <h2 class="order__h">ছাপা কপি হাতে পেতে চান?</h2>
       <p id="orderNote">প্রতি সংখ্যা মুদ্রিত আকারে সারা দেশে কুরিয়ারে পৌঁছে দেওয়া হয়।</p>
     </div>
-    <button class="btn btn--gold btn--lg" id="orderOpen">প্রি-অর্ডার করুন</button>
+    <button class="btn btn--gold btn--lg" id="orderOpen">অর্ডার করুন</button>
   </div>
 </section>
 
@@ -314,15 +323,25 @@
   </div>
 </section>
 
-<!-- ===== INFOGRAPHICS ===== -->
-<section class="section section--tint" id="media">
+<!-- ===== INFOGRAPHICS: দাওয়াহ কার্ড + ইনফোগ্রাফিক্স ===== -->
+<section class="section section--tint" id="infographics">
   <div class="wrap">
     <header class="sechead">
-      <h2 class="sechead__h">দাওয়াহ কার্ড ও ইনফোগ্রাফিক</h2>
-      <p class="sechead__p">সোশ্যাল মিডিয়ায় ছড়িয়ে দিন — ছবি নামিয়ে নিন বা সরাসরি শেয়ার করুন।</p>
+      <h2 class="sechead__h">ইনফোগ্রাফিক্স</h2>
+      <p class="sechead__p">সোশ্যাল মিডিয়ায় ছড়িয়ে দিন — সরাসরি শেয়ার করুন।</p>
     </header>
-    <div class="cards" id="infoGrid"></div>
 
+    <div class="subsec" id="dawahcards">
+      <h3 class="subsec__h">দাওয়াহ কার্ড</h3>
+      <p class="demo-note" id="cardDemoNote" hidden></p>
+      <div class="cards" id="infoGrid"></div>
+    </div>
+
+    <div class="subsec" id="infographs">
+      <h3 class="subsec__h">ইনফোগ্রাফিক্স</h3>
+      <p class="demo-note" id="graphDemoNote" hidden></p>
+      <div class="cards" id="infographGrid"></div>
+    </div>
   </div>
 </section>
 
@@ -344,6 +363,7 @@
       <h2 class="sechead__h">অডিও ও ভিডিও</h2>
       <p class="sechead__p">আলোচনা, পাঠচক্র ও প্রশ্নোত্তর পর্ব — শুনুন ও দেখুন।</p>
     </header>
+    <p class="demo-note" id="mediaDemoNote" hidden></p>
     <ul class="media__list" id="mediaList"></ul>
   </div>
 </section>
