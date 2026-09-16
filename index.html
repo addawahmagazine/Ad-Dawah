@@ -170,18 +170,19 @@
       <ul class="nav__list">
         <li><a href="#home" class="nav__link is-active">হোম</a></li>
         <li class="nav__has-sub">
-          <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navIssues">সকল সংখ্যা
+          <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navIssues" data-spy="archive">সকল সংখ্যা
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <ul class="nav__sub" id="navIssues"></ul>
         </li>
         <li class="nav__has-sub">
-          <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navCats">বিভাগসমূহ
+          <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navCats" data-spy="categories">বিভাগসমূহ
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <ul class="nav__sub" id="navCats"></ul>
         </li>
         <li><a href="#authors" class="nav__link">লেখকবৃন্দ</a></li>
+        <li><a href="#audiovideo" class="nav__link">অডিও ও ভিডিও</a></li>
         <li><a href="#qa" class="nav__link">আপনার জিজ্ঞাসা</a></li>
         <li><a href="#about" class="nav__link">আমাদের সম্পর্কে</a></li>
         <li><a href="#outlets" class="nav__link">এজেন্ট ও মাকতাবা</a></li>
@@ -322,10 +323,6 @@
     </header>
     <div class="cards" id="infoGrid"></div>
 
-    <div class="media">
-      <h3 class="media__h">অডিও ও ভিডিও</h3>
-      <ul class="media__list" id="mediaList"></ul>
-    </div>
   </div>
 </section>
 
@@ -340,8 +337,19 @@
   </div>
 </section>
 
+<!-- ===== AUDIO & VIDEO ===== -->
+<section class="section section--tint" id="audiovideo">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__h">অডিও ও ভিডিও</h2>
+      <p class="sechead__p">আলোচনা, পাঠচক্র ও প্রশ্নোত্তর পর্ব — শুনুন ও দেখুন।</p>
+    </header>
+    <ul class="media__list" id="mediaList"></ul>
+  </div>
+</section>
+
 <!-- ===== Q&A ===== -->
-<section class="section section--tint" id="qa">
+<section class="section" id="qa">
   <div class="wrap qa">
     <div class="qa__intro">
       <h2 class="sechead__h">আপনার জিজ্ঞাসা</h2>
@@ -378,7 +386,7 @@
 </section>
 
 <!-- ===== SUBMIT ARTICLE ===== -->
-<section class="section" id="submit">
+<section class="section section--tint" id="submit">
   <div class="wrap submit">
     <div class="submit__intro">
       <h2 class="sechead__h" id="submitTitle">আমাদের জন্য লিখুন</h2>
@@ -412,7 +420,7 @@
 </section>
 
 <!-- ===== ABOUT ===== -->
-<section class="section section--tint" id="about">
+<section class="section" id="about">
   <div class="wrap about">
     <div class="about__main">
       <h2 class="sechead__h" id="aboutHeading">আমাদের সম্পর্কে</h2>
@@ -426,7 +434,7 @@
 </section>
 
 <!-- ===== OUTLETS ===== -->
-<section class="section" id="outlets">
+<section class="section section--tint" id="outlets">
   <div class="wrap">
     <header class="sechead">
       <h2 class="sechead__h">এজেন্ট ও মাকতাবা</h2>

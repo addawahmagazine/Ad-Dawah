@@ -289,7 +289,8 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 /* মিডিয়া */
 .media{margin-top:52px}
 .media__h{font-size:24px;margin:0 0 18px}
-.media__list{display:grid;gap:12px}
+.media__list{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.media__empty{color:var(--muted);margin:0}
 .mitem{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m)}
 .mitem__play{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);flex:0 0 auto;border:0;cursor:pointer;text-decoration:none;transition:background .18s,color .18s}
 .mitem__play:hover{background:var(--brand);color:#fff}
@@ -704,7 +705,8 @@ h1,h2,h3,h4,
 /* ==========================================================================
    মোবাইলে পাতা চওড়া হয়ে যাওয়া ঠেকানো
    ========================================================================== */
-html, body{overflow-x:hidden;max-width:100%}
+/* hidden-এর পরে clip: পুরোনো ব্রাউজারে hidden, নতুনগুলোতে clip — clip থাকলে উপরের মেনু আটকে থাকে */
+html, body{overflow-x:hidden;overflow-x:clip;max-width:100%}
 .wrap{max-width:100%}
 
 /* ফ্লেক্সের ভেতরের লম্বা লেখা যেন বাক্স ঠেলে বড় না করে */

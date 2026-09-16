@@ -565,7 +565,9 @@ function renderMediaEtc(){
     </article>`;
   }).join('');
 
-  $('#mediaList').innerHTML = MEDIA.map(m => {
+  $('#mediaList').innerHTML = !MEDIA.length
+    ? '<li class="media__empty">নতুন অডিও ও ভিডিও শিগগিরই যোগ হবে, ইনশাআল্লাহ।</li>'
+    : MEDIA.map(m => {
     const play = m.link
       ? `<a class="mitem__play" href="${esc(m.link)}" target="_blank" rel="noopener" aria-label="চালান"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></a>`
       : `<button class="mitem__play" aria-label="চালান"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></button>`;
@@ -1052,6 +1054,7 @@ function wireForm(form, note, okMsg){
 const PAGES = [
   { t:'আমাদের সম্পর্কে', s:'সম্পাদনা পরিষদ ও নীতিমালা', h:'#about' },
   { t:'সকল সংখ্যা', s:'আর্কাইভ', h:'#archive' },
+  { t:'অডিও ও ভিডিও', s:'আলোচনা ও পাঠচক্র', h:'#audiovideo' },
   { t:'আপনার জিজ্ঞাসা', s:'প্রশ্ন পাঠান', h:'#qa' },
   { t:'লেখা পাঠান', s:'আমাদের জন্য লিখুন', h:'#submit' },
   { t:'এজেন্ট ও মাকতাবা', s:'যেখানে পত্রিকা পাওয়া যায়', h:'#outlets' },
@@ -1276,29 +1279,35 @@ function wireUI(){
 
   const toTop = $('#toTop'), head = $('#head');
 
-  // মেনুতে যেসব অংশের লিংক আছে, সেগুলো পাতায় যে ক্রমে আছে সেভাবেই সাজাই
-  const navIds = $$('.nav__link[href^="#"]')
-    .map(l => l.getAttribute('href').slice(1))
-    .filter(id => document.getElementById(id));
+  // মেনুর কোন আইটেম পাতার কোন অংশের সঙ্গে যুক্ত
+  // (লিংকের href থেকে, ড্রপডাউন বোতামের ক্ষেত্রে data-spy থেকে)
+  const navItems = $$('.nav__link').map(l => {
+    const h = l.getAttribute('href') || '';
+    return { l, id: h.startsWith('#') ? h.slice(1) : (l.dataset.spy || '') };
+  }).filter(x => x.id);
+  // যেসব অংশের নিজস্ব মেনু নেই, সেগুলো কোন মেনুর অধীনে পড়বে
+  const SPY_ALIAS = { articles: 'home', preorder: 'home' };
 
   const onScroll = () => {
     toTop.hidden = scrollY < 600;
     head.classList.toggle('is-stuck', scrollY > 10);
 
     const y = scrollY + (head.offsetHeight || 120) + 40;
-    const spots = navIds
-      .map(id => ({ id, top: document.getElementById(id).getBoundingClientRect().top + scrollY }))
+    // পাতার সব দৃশ্যমান অংশ, ওপর থেকে নিচে
+    const spots = $$('#main > section[id], #main > footer[id]')
+      .filter(el => el.getClientRects().length)
+      .map(el => ({ id: el.id, top: el.getBoundingClientRect().top + scrollY }))
       .sort((a, b) => a.top - b.top);
 
-    let cur = spots.length ? spots[0].id : 'home';
+    let cur = 'home';
     spots.forEach(s => { if (s.top <= y) cur = s.id; });
 
     // পাতার একদম নিচে পৌঁছালে শেষ অংশটিই সক্রিয়
-    if (scrollY + innerHeight >= document.body.scrollHeight - 4 && spots.length)
+    if (scrollY + innerHeight >= document.documentElement.scrollHeight - 4 && spots.length)
       cur = spots[spots.length - 1].id;
 
-    $$('.nav__link[href^="#"]').forEach(l =>
-      l.classList.toggle('is-active', l.getAttribute('href') === '#' + cur));
+    cur = SPY_ALIAS[cur] || cur;
+    navItems.forEach(({ l, id }) => l.classList.toggle('is-active', id === cur));
   };
   addEventListener('scroll', onScroll, { passive:true });
   onScroll();
