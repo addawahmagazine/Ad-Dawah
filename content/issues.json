@@ -5,44 +5,51 @@
       "pages": 36,
       "bg": "#064E3B",
       "preview": [
-        "/uploads/আদ-দাওয়াহ-১ম-সংখ্যা-প্রচ্ছদ.jpg",
-        "/uploads/ad-markazul-uloom.jpg"
+        "/uploads/y1n1-index-.jpg"
       ],
       "accent": "#D97706",
       "greg": "মার্চ ২০২০",
       "published": true,
       "tagline": "সূচনা সংখ্যা",
-      "pdf": "/uploads/bse-2301-lecture-2-.pdf",
+      "pdf": "/uploads/y1n1-short-.pdf",
       "label": "বর্ষ ১, সংখ্যা ১",
       "cover": "/uploads/আদ-দাওয়াহ-১ম-সংখ্যা-প্রচ্ছদ.jpg",
       "id": "y1n1",
-      "pdf_price": 12
+      "pdf_price": 20
     },
     {
-      "hijri": "জুমাদাল ঊলা ১৪৪৮",
-      "pages": 0,
+      "hijri": "জ্বিলহজ্জ - ১৪৪৭",
+      "pages": 42,
       "bg": "#0F5132",
+      "preview": [
+        "/uploads/y1n2-index-.jpg"
+      ],
       "accent": "#D97706",
-      "greg": "নভেম্বর ২০২৬",
-      "published": false,
-      "tagline": "প্রস্তুত হচ্ছে",
-      "pdf": "",
+      "greg": "মে ২০২৬",
+      "published": true,
+      "tagline": "",
+      "pdf": "/uploads/y1n2-short-pdf-.pdf",
       "label": "বর্ষ ১, সংখ্যা ২",
-      "cover": "",
-      "id": "y1n2"
+      "cover": "/uploads/cover.2.jpg",
+      "id": "y1n2",
+      "pdf_price": 25
     },
     {
-      "hijri": "শা‌বান ১৪৪৮",
-      "pages": 0,
+      "hijri": " জ্বিলহজ্জ - ১৪৪৭",
+      "pages": 42,
       "bg": "#14664A",
+      "preview": [
+        "/uploads/y1n3-index-.jpg"
+      ],
       "accent": "#D97706",
-      "greg": "ফেব্রুয়ারি ২০২৭",
-      "published": false,
-      "tagline": "প্রস্তুত হচ্ছে",
-      "pdf": "",
+      "greg": "মে - ২০২৬",
+      "published": true,
+      "tagline": "",
+      "pdf": "/uploads/y1n3-short-.pdf",
       "label": "বর্ষ ১, সংখ্যা ৩",
-      "cover": "",
-      "id": "y1n3"
+      "cover": "/uploads/y1n3-cover-.jpg",
+      "id": "y1n3",
+      "pdf_price": 25
     },
     {
       "hijri": "যিলক্বদ ১৪৪৮",
