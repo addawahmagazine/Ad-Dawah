@@ -18,17 +18,17 @@
       "pdf_price": 20
     },
     {
-      "hijri": "জ্বিলহজ্জ - ১৪৪৭",
-      "pages": 42,
+      "hijri": "রজব - ১৪৪৭",
+      "pages": 40,
       "bg": "#0F5132",
       "preview": [
         "/uploads/y1n2-index-.jpg"
       ],
       "accent": "#D97706",
-      "greg": "মে ২০২৬",
+      "greg": "জানুয়ারি ২০২৬",
       "published": true,
       "tagline": "",
-      "pdf": "/uploads/y1n2-short-pdf-.pdf",
+      "pdf": "/uploads/y1n2-short-.pdf",
       "label": "বর্ষ ১, সংখ্যা ২",
       "cover": "/uploads/cover.2.jpg",
       "id": "y1n2",
