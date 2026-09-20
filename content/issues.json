@@ -52,17 +52,21 @@
       "pdf_price": 25
     },
     {
-      "hijri": "যিলক্বদ ১৪৪৮",
-      "pages": 0,
+      "hijri": "রবিউল আউয়াল ১৪৪৮",
+      "pages": 47,
       "bg": "#0B3F2C",
+      "preview": [
+        "/uploads/y1n4-index-.jpg"
+      ],
       "accent": "#D97706",
-      "greg": "মে ২০২৭",
-      "published": false,
-      "tagline": "প্রস্তুত হচ্ছে",
-      "pdf": "",
+      "greg": "আগস্ট ২০২৬",
+      "published": true,
+      "tagline": "",
+      "pdf": "/uploads/y1n4-short-.pdf",
       "label": "বর্ষ ১, সংখ্যা ৪",
-      "cover": "",
-      "id": "y1n4"
+      "cover": "/uploads/y1n4-cover-.jpg",
+      "id": "y1n4",
+      "pdf_price": 30
     }
   ]
 }
