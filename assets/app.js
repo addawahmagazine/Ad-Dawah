@@ -15,6 +15,7 @@ const HIJRI_MONTHS = ['মুহাররম','সফর','রবিউল আ�
 /* ---------- কনটেন্ট ---------- */
 let CATS = [], ISSUES = [], AUTHORS = [], ARTICLES = [];
 let INFOGRAPHICS = [], INFOGRAPHS = [], MEDIA = [], QA_RECENT = [], SITE = {}, PAYMENTS = [];
+let FEEDBACK = [], FEEDBACK_INTRO = '';
 let ABOUT = {}, QUOTES = {}, ADS = [], OUTLETS = [], OUTLET_INTRO = '';
 
 const catById    = id => CATS.find(c => c.id === id)    || CATS[0]    || { name:'', color:'#0F5132' };
@@ -23,11 +24,32 @@ const issueOf    = a => ISSUES.find(i => i.id === a.issue) || null;   // না 
 const isWeb      = a => a.kind === 'web' || !a.issue;
 const authorById = id => AUTHORS.find(a => a.id === id) || AUTHORS[0] || { name:'' };
 
+/* লেখকের নাম: তালিকার লেখক হলে তালিকা থেকে, নইলে "অতিথি লেখকের নাম" ঘর থেকে */
+const guestOf    = a => String(a?.guest || '').trim();
+
+/* সংক্ষিপ্তসার না দিলে মূল লেখার প্রথম অনুচ্ছেদ থেকে কয়েক লাইন নিয়ে নিই */
+const excerptOf = a => {
+  const x = String(a?.excerpt || '').trim();
+  if (x) return x;
+  const first = (a?.body || []).find(b => b.type === 'para' && String(b.text || '').trim());
+  const t = String(first?.text || '').trim();
+  return t.length > 180 ? t.slice(0, 180).replace(/\s+\S*$/, '') + '…' : t;
+};
+const authorName = a => guestOf(a) || (a?.author ? authorById(a.author).name : '');
+/* সব লেখায় ব্যবহৃত অতিথি লেখকদের নাম, একবার করে */
+const guestNames = () => [...new Set(ARTICLES.map(guestOf).filter(Boolean))].sort((x, y) => x.localeCompare(y, 'bn'));
+/* ফিল্টারে অতিথি লেখকের মান হয় guest:নাম */
+const matchesAuthor = (a, sel) => {
+  if (sel === 'all') return true;
+  if (sel.startsWith('guest:')) return guestOf(a) === sel.slice(6);
+  return !guestOf(a) && a.author === sel;
+};
+
 /* =========================================================================
    কনটেন্ট লোড
    ========================================================================= */
 const REQUIRED = ['site','categories','authors','issues','articles','media'];
-const OPTIONAL = ['about','quotes','ads','outlets'];
+const OPTIONAL = ['about','quotes','ads','outlets','feedback'];
 
 async function getJSON(name, bust){
   const res = await fetch(`content/${name}.json${bust}`, { cache:'no-store' });
@@ -53,12 +75,14 @@ async function loadContent(){
 
   // ঐচ্ছিক ফাইল — না থাকলেও সাইট চলবে
   const opt = await Promise.all(OPTIONAL.map(n => getJSON(n, bust).catch(() => null)));
-  const [about, quotes, ads, outlets] = opt;
+  const [about, quotes, ads, outlets, feedback] = opt;
   ABOUT        = about || {};
   QUOTES       = quotes || { enabled:false, quotes:[] };
   ADS          = (ads && ads.ads) || [];
   OUTLETS      = (outlets && outlets.outlets) || [];
   OUTLET_INTRO = (outlets && outlets.intro) || '';
+  FEEDBACK       = (feedback && feedback.items) || [];
+  FEEDBACK_INTRO = (feedback && feedback.intro) || '';
 }
 
 function loadFailed(err){
@@ -209,10 +233,19 @@ function renderDates(){
 }
 
 function applySite(){
-  const set = (sel, href) => { const el = $(sel); if (el && href) el.href = href; };
+  // লিংক থাকলে বসাই, না থাকলে আইকনটি লুকিয়ে রাখি
+  const set = (sel, href) => {
+    const el = $(sel); if (!el) return;
+    if (href) el.href = href; else el.hidden = true;
+  };
   set('#lnkFacebook', SITE.facebook);
   set('#lnkYoutube',  SITE.youtube);
   set('#lnkTelegram', SITE.telegram);
+  set('#lnkWhatsapp', SITE.whatsapp);
+  set('#fsFacebook',  SITE.facebook);
+  set('#fsYoutube',   SITE.youtube);
+  set('#fsTelegram',  SITE.telegram);
+  set('#fsWhatsapp',  SITE.whatsapp);
 
   if (SITE.email){ const e = $('#ctEmail'); e.href = 'mailto:' + SITE.email; e.textContent = SITE.email; }
   if (SITE.phone){ const p = $('#ctPhone'); p.href = 'tel:' + SITE.phone.replace(/[^\d+]/g,''); p.textContent = bn(SITE.phone); }
@@ -230,7 +263,7 @@ function applySite(){
 function renderAbout(){
   if (ABOUT.heading) $('#aboutHeading').textContent = ABOUT.heading;
   if (ABOUT.paragraphs?.length)
-    $('#aboutBody').innerHTML = ABOUT.paragraphs.map(p => `<p>${esc(p.text)}</p>`).join('');
+    $('#aboutBody').innerHTML = ABOUT.paragraphs.map(p => `<p>${rich(p.text)}</p>`).join('');
   if (ABOUT.board_title) $('#aboutBoardTitle').textContent = ABOUT.board_title;
   if (ABOUT.board?.length)
     $('#aboutBoard').innerHTML = ABOUT.board.map(b =>
@@ -258,8 +291,9 @@ function renderHero(){
 
   $('#heroIssueLabel').textContent = `${issue.label} ॥ ${issue.hijri} ॥ ${issue.greg}`;
   $('#heroTitle').textContent = lead.title;
-  $('#heroExcerpt').textContent = lead.excerpt;
-  $('#heroBy').textContent = `${authorById(lead.author).name} • পড়তে ${bn(lead.read)} মিনিট`;
+  $('#heroExcerpt').textContent = excerptOf(lead);
+  $('#heroBy').textContent = [authorName(lead), lead.read ? `পড়তে ${bn(lead.read)} মিনিট` : '']
+    .filter(Boolean).join(' • ');
   $('#heroCover').innerHTML = coverSVG(issue);
   $('#heroCoverCap').textContent = `${issue.label}${issue.pages ? ` • ${bn(issue.pages)} পৃষ্ঠা` : ''}`;
 
@@ -340,9 +374,12 @@ function articleCard(a){
     </div>
     <div class="card__in">
       <h3 class="card__h">${esc(a.title)}</h3>
-      <p class="card__x">${esc(a.excerpt)}</p>
+      <p class="card__x">${esc(excerptOf(a))}</p>
+      <button class="card__more" data-open="${a.id}" tabindex="-1">আরো পড়ুন
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
       <div class="card__foot">
-        <span class="card__by">${esc(authorById(a.author).name)} • ${d || bn(a.read) + ' মিনিট'}</span>
+        <span class="card__by">${[esc(authorName(a)), d || (a.read ? bn(a.read) + ' মিনিট' : '')].filter(Boolean).join(' • ')}</span>
         <span class="card__share">
           <button class="shr" data-share="whatsapp" data-id="${a.id}" aria-label="হোয়াটসঅ্যাপে শেয়ার">${shareIcon('whatsapp')}</button>
           <button class="shr" data-share="facebook" data-id="${a.id}" aria-label="ফেসবুকে শেয়ার">${shareIcon('facebook')}</button>
@@ -358,9 +395,9 @@ function matches(a){
   if (state.cat !== 'all' && a.cat !== state.cat) return false;
   if (state.issue === '__web'){ if (!isWeb(a)) return false; }
   else if (state.issue !== 'all' && a.issue !== state.issue) return false;
-  if (state.author !== 'all' && a.author !== state.author) return false;
+  if (!matchesAuthor(a, state.author)) return false;
   if (state.q){
-    const hay = [a.title, a.excerpt, authorById(a.author).name, catById(a.cat).name].join(' ').toLowerCase();
+    const hay = [a.title, excerptOf(a), authorName(a), catById(a.cat).name].join(' ').toLowerCase();
     if (!hay.includes(state.q.toLowerCase())) return false;
   }
   return true;
@@ -401,9 +438,12 @@ function renderFilters(){
     ISSUES.map(i => `<option value="${i.id}">${esc(i.label)}</option>`).join('') +
     `<option value="__web">কেবল ওয়েবসাইটে</option>`;
 
+  const gs = guestNames();
   $('#authorFilter').innerHTML =
     `<option value="all">সব লেখক</option>` +
-    AUTHORS.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+    AUTHORS.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('') +
+    (gs.length ? `<optgroup label="অতিথি লেখক">` +
+      gs.map(g => `<option value="guest:${esc(g)}">${esc(g)}</option>`).join('') + `</optgroup>` : '');
 
   $('#catChips').addEventListener('click', e => {
     const b = e.target.closest('[data-cat]'); if (!b) return;
@@ -471,7 +511,7 @@ async function downloadIssue(issueId){
 function openBuy(issueId){
   const i = issueById(issueId);
   if (!AD.user){ openAuth('login'); return; }
-  const hint = PAYMENTS.map(p => `<strong>${esc(p.title)} ${bn(p.number)}</strong>`).join(' ॥ ');
+  const hint = PAYMENTS.map(p => `<strong>${esc(p.title)} ${esc(p.number)}</strong>`).join(' ॥ ');
   openModal(`
     <h2 class="art__h" id="modalTitle">${esc(i.label)} — পিডিএফ</h2>
     <p class="art__meta">${esc(i.hijri)} ॥ ${esc(i.greg)} • মূল্য ৳${bn(i.pdf_price)}</p>
@@ -533,18 +573,34 @@ function renderIssues(){
 }
 
 function renderAuthors(){
-  $('#authorGrid').innerHTML = AUTHORS.map(a => {
-    const n = ARTICLES.filter(x => x.author === a.id).length;
+  const countOf = id => ARTICLES.filter(x => !guestOf(x) && x.author === id).length;
+  // "নিয়মিত লেখক" টিক না থাকলে নিচের ছোট তালিকায়। পুরনো লেখকদের টিক নেই, তাই তাঁদের নিয়মিত ধরা হয়।
+  const isReg = a => a.featured !== false;
+
+  $('#authorGrid').innerHTML = AUTHORS.filter(isReg).map(a => {
     const av = a.photo
       ? `<img src="${esc(a.photo)}" alt="${esc(a.name)}" loading="lazy">`
       : esc(String(a.name).trim().slice(0,1));
     return `<div class="auth">
       <div class="auth__av" aria-hidden="true">${av}</div>
       <h3 class="auth__n">${esc(a.name)}</h3>
-      <p class="auth__r">${esc(a.role)}</p>
-      <p class="auth__c">${esc(a.bio)}<br>${bn(n)}টি লেখা</p>
+      ${a.role ? `<p class="auth__r">${esc(a.role)}</p>` : ''}
+      <p class="auth__c">${a.bio ? esc(a.bio) + '<br>' : ''}${bn(countOf(a.id))}টি লেখা</p>
     </div>`;
   }).join('');
+
+  // অতিথি ও অনিয়মিত লেখক — কেবল নাম, ক্লিক করলে তাঁর লেখাগুলো দেখাবে
+  const others = AUTHORS.filter(a => !isReg(a))
+    .map(a => ({ label: a.name, val: a.id, n: countOf(a.id) }))
+    .concat(guestNames().map(g => ({
+      label: g, val: 'guest:' + g,
+      n: ARTICLES.filter(x => guestOf(x) === g).length
+    })));
+
+  $('#guestList').innerHTML = others.map(o =>
+    `<button class="guests__i" data-authfilter="${esc(o.val)}">${esc(o.label)}<span>${bn(o.n)}</span></button>`
+  ).join('');
+  $('#guestAuthors').hidden = !others.length;
 }
 
 /* নমুনা (ডেমো) আইটেম — CMS-এ "নমুনা" টিক দেওয়া থাকলে */
@@ -617,9 +673,30 @@ function renderMediaEtc(){
   $('#donateCards').innerHTML = PAYMENTS.map(p => `
     <div class="dcard">
       <span class="dcard__n" style="background:${p.color}">${esc(p.name)}</span>
-      <div><p class="dcard__t">${esc(p.title)}</p><p class="dcard__v">${bn(p.number)}</p></div>
+      <div><p class="dcard__t">${esc(p.title)}</p><p class="dcard__v">${esc(p.number)}</p></div>
       <button class="dcard__copy" data-copy="${esc(p.number)}">নম্বর কপি</button>
     </div>`).join('');
+}
+
+/* ---- পাঠকের অনুভূতি ---- */
+function renderFeedback(){
+  const sec = $('#feedback'); if (!sec) return;
+  // মতামত না থাকলেও সেকশনটি থাকবে — পাঠক যেন নিজের কথা পাঠাতে পারেন
+  $('#fbGrid').hidden = !FEEDBACK.length;
+  if (!FEEDBACK.length){ $('#fbIntro').textContent = ''; return; }
+
+  $('#fbIntro').textContent = FEEDBACK_INTRO;
+  $('#fbGrid').innerHTML = FEEDBACK.map(f => `
+    <figure class="fb">
+      <blockquote class="fb__q">${esc(f.text)}</blockquote>
+      <figcaption class="fb__who">
+        <span class="fb__av" aria-hidden="true">${esc(String(f.name || '').trim().slice(0,1))}</span>
+        <span>
+          <p class="fb__n">${esc(f.name)}${f.demo ? '<span class="demo-tag">নমুনা</span>' : ''}</p>
+          ${f.meta ? `<p class="fb__m">${esc(f.meta)}</p>` : ''}
+        </span>
+      </figcaption>
+    </figure>`).join('');
 }
 
 /* ---- এজেন্ট ও মাকতাবা ---- */
@@ -691,18 +768,39 @@ function closeModal(){
   $('#modal').hidden = true;
   document.body.style.overflow = '';
   lastFocus?.focus?.();
+  // লেখা বন্ধ করলে ঠিকানা থেকে লেখার লিংকটি সরিয়ে দিই,
+  // নইলে রিফ্রেশ করলে আবার সেই লেখাটিই খুলে যায়।
+  if (location.hash.startsWith('#/lekha/'))
+    history.replaceState(null, '', location.pathname + location.search);
+}
+
+/* লেখার ভেতরে সাজসজ্জা — CMS-এর বোল্ড/ইটালিক/লিংক বোতামগুলো যা লিখে দেয়।
+   আগে esc() দিয়ে সব নিরাপদ করে নেওয়া হয়, তাই কেউ HTML ঢুকিয়ে দিতে পারবে না। */
+function rich(txt){
+  let h = esc(String(txt || ''));
+  h = h.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  // চিহ্নের গা ঘেঁষে লেখা থাকলে তবেই সাজসজ্জা ধরা হয় —
+  // নইলে "২ * ৩ = ৬" জাতীয় লেখা ভুল করে ইটালিক হয়ে যেত
+  h = h.replace(/\*\*\*(?!\s)([^\n]*?[^\s*])\*\*\*/g, '<strong><em>$1</em></strong>');
+  h = h.replace(/\*\*(?!\s)([^\n]*?[^\s*])\*\*/g,       '<strong>$1</strong>');
+  h = h.replace(/(^|[^*])\*(?!\s)([^*\n]*?[^\s*])\*(?!\*)/g, '$1<em>$2</em>');
+  h = h.replace(/__(?!\s)([^_\n]*[^\s_])__/g, '<u>$1</u>');
+  h = h.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>');
+  return h;
 }
 
 function bodyHTML(blocks){
   return (blocks || []).map(b => {
     if (b.type === 'heading') return `<h3>${esc(b.text)}</h3>`;
-    if (b.type === 'quote')   return `<blockquote>${esc(b.text)}<footer>${esc(b.source || '')}</footer></blockquote>`;
+    if (b.type === 'quote')   return `<blockquote>${rich(b.text)}<footer>${esc(b.source || '')}</footer></blockquote>`;
     if (b.type === 'image')   return `<figure class="art__fig"><img src="${esc(b.src)}" alt="${esc(b.caption || '')}" loading="lazy">${b.caption ? `<figcaption>${esc(b.caption)}</figcaption>` : ''}</figure>`;
     if (b.type === 'refute')  return `<div class="refute">
-        <div class="refute__claim"><span class="refute__lbl">দাবি</span><p>${esc(b.claim)}</p></div>
-        <div class="refute__answer"><span class="refute__lbl">জবাব</span><p>${esc(b.answer)}</p></div>
+        <div class="refute__claim"><span class="refute__lbl">দাবি</span><p>${rich(b.claim)}</p></div>
+        <div class="refute__answer"><span class="refute__lbl">জবাব</span><p>${rich(b.answer)}</p></div>
       </div>`;
-    return `<p>${esc(b.text)}</p>`;
+    const size = b.size && b.size !== 'normal' ? ` class="para--${esc(b.size)}"` : '';
+    return `<p${size}>${rich(b.text)}</p>`;
   }).join('');
 }
 
@@ -719,10 +817,10 @@ function openArticle(id){
     <p class="art__cat" style="color:${c.color}">${esc(c.name)}</p>
     <h2 class="art__h" id="modalTitle">${esc(a.title)}</h2>
     <div class="art__meta">
-      <span>${esc(authorById(a.author).name)}</span>
+      <span>${esc(authorName(a))}</span>
       <span>${source}</span>
       ${d ? `<span>${d}</span>` : ''}
-      <span>পড়তে ${bn(a.read)} মিনিট</span>
+      ${a.read ? `<span>পড়তে ${bn(a.read)} মিনিট</span>` : ''}
     </div>
     <div class="art__body">${bodyHTML(a.body)}</div>
     <div class="art__share">
@@ -843,7 +941,7 @@ function openPdf(issueId){
 function openOrder(issue){
   const pre = !!issue;
   const s = SITE.price_single ?? 120;
-  const hint = PAYMENTS.map(p => `<strong>${esc(p.title)} ${bn(p.number)}</strong>`).join(' ॥ ');
+  const hint = PAYMENTS.map(p => `<strong>${esc(p.title)} ${esc(p.number)}</strong>`).join(' ॥ ');
 
   openModal(`
     <h2 class="art__h" id="modalTitle">${pre ? 'প্রি-অর্ডার' : 'ছাপা কপির অর্ডার'}</h2>
@@ -878,36 +976,38 @@ function openOrder(issue){
 /* =========================================================================
    অ্যাকাউন্ট — লগইন, নিবন্ধন, সংরক্ষিত লেখা, নিজের প্রশ্ন
    ========================================================================= */
-function authForms(mode){
+function authForms(mode, pre = {}){
   const login = mode !== 'signup';
   return `
     <h2 class="art__h" id="modalTitle">${login ? 'লগইন করুন' : 'নতুন অ্যাকাউন্ট'}</h2>
     <p class="art__meta">লগইন করলে পছন্দের লেখা সংরক্ষণ করতে পারবেন, আর নিজের পাঠানো প্রশ্নের জবাব এক জায়গায় দেখতে পাবেন।</p>
     <form class="ordform" id="authForm">
       ${login ? '' : `<label class="fld"><span>আপনার নাম</span><input name="name" required placeholder="পূর্ণ নাম"></label>`}
-      <label class="fld"><span>ইমেইল</span><input name="email" type="email" required placeholder="you@example.com"></label>
+      <label class="fld"><span>ইমেইল</span><input name="email" type="email" required placeholder="you@example.com" value="${esc(pre.email || '')}"></label>
+      ${login ? '' : `<label class="fld"><span>মোবাইল নাম্বার <em>(না দিলেও চলবে)</em></span><input name="phone" type="tel" inputmode="tel" placeholder="01XXXXXXXXX" pattern="[0-9+\\-\\s]{6,20}"></label>`}
       <label class="fld"><span>পাসওয়ার্ড</span><input name="password" type="password" required minlength="6" placeholder="অন্তত ৬ অক্ষর"></label>
       <button class="btn btn--green btn--lg" type="submit">${login ? 'লগইন' : 'নিবন্ধন করুন'}</button>
       <p class="form__note" id="authNote" role="status"></p>
     </form>
     <div class="authswitch">
       ${login
-        ? `<button data-auth="signup">অ্যাকাউন্ট নেই? নিবন্ধন করুন</button>
+        ? `<button data-auth="signup" data-email="${esc(pre.email || '')}">অ্যাকাউন্ট নেই? নিবন্ধন করুন</button>
            <button data-auth="reset">পাসওয়ার্ড ভুলে গেছেন?</button>`
         : `<button data-auth="login">অ্যাকাউন্ট আছে? লগইন করুন</button>`}
     </div>`;
 }
 
-function openAuth(mode){
-  openModal(authForms(mode));
+function openAuth(mode, pre = {}){
+  openModal(authForms(mode, pre));
   const form = $('#authForm'), note = $('#authNote');
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(form));
+    note.style.color = '';
     note.textContent = 'অপেক্ষা করুন…';
     try{
       if (mode === 'signup'){
-        const res = await AD.signUp(f.email, f.password, f.name);
+        const res = await AD.signUp(f.email, f.password, f.name, (f.phone || '').trim());
         if (res?.session){                    // ইমেইল যাচাই বন্ধ থাকলে সঙ্গে সঙ্গেই লগইন
           closeModal();
           toast('স্বাগতম, ' + (f.name || ''));
@@ -920,15 +1020,24 @@ function openAuth(mode){
         toast('স্বাগতম, ' + AD.userName());
       }
     }catch(err){
-      note.textContent = authError(err);
       note.style.color = 'var(--accent)';
+      if (mode !== 'signup' && /Invalid login/i.test(String(err?.message || ''))){
+        const exists = await AD.accountExists(f.email);
+        if (exists === false){
+          note.innerHTML = 'আপনার কোনো অ্যাকাউন্ট খোলা নেই। আগে সাইন আপ করে অ্যাকাউন্ট খুলে নিন। '
+            + `<button class="linkbtn" data-auth="signup" data-email="${esc(f.email)}">নিবন্ধন করুন</button>`;
+          return;
+        }
+        if (exists === true){ note.textContent = 'পাসওয়ার্ড মিলছে না। আবার চেষ্টা করুন।'; return; }
+      }
+      note.textContent = authError(err);
     }
   });
 }
 
 function authError(err){
   const m = String(err?.message || '');
-  if (/Invalid login/i.test(m))      return 'ইমেইল বা পাসওয়ার্ড মিলছে না।';
+  if (/Invalid login/i.test(m))      return 'ইমেইল বা পাসওয়ার্ড মিলছে না। অ্যাকাউন্ট না খুলে থাকলে আগে নিবন্ধন করে নিন।';
   if (/already registered/i.test(m)) return 'এই ইমেইলে অ্যাকাউন্ট আছে। লগইন করে দেখুন।';
   if (/Email not confirmed/i.test(m))return 'ইমেইলে পাঠানো লিংকে ক্লিক করে অ্যাকাউন্টটি নিশ্চিত করুন।';
   if (/at least 6/i.test(m))         return 'পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।';
@@ -939,7 +1048,7 @@ function authError(err){
 async function openAccount(){
   openModal(`
     <h2 class="art__h" id="modalTitle">${esc(AD.userName())}</h2>
-    <p class="art__meta">${esc(AD.user?.email || '')}</p>
+    <p class="art__meta">${esc(AD.user?.email || '')}${AD.userPhone() ? ' • ' + esc(AD.userPhone()) : ''}</p>
     <div class="acct">
       <h3 class="acct__h">সংরক্ষিত লেখা</h3>
       <div id="acctMarks"><p class="acct__empty">লোড হচ্ছে…</p></div>
@@ -958,7 +1067,7 @@ async function openAccount(){
   const marks = [...AD.bookmarks].map(id => ARTICLES.find(a => a.id === id)).filter(Boolean);
   $('#acctMarks').innerHTML = marks.length
     ? marks.map(a => `<button class="acctitem" data-open="${a.id}">
-        <b>${esc(a.title)}</b><span>${esc(catById(a.cat).name)} • ${esc(authorById(a.author).name)}</span></button>`).join('')
+        <b>${esc(a.title)}</b><span>${esc(catById(a.cat).name)} • ${esc(authorName(a))}</span></button>`).join('')
     : '<p class="acct__empty">এখনও কোনো লেখা সংরক্ষণ করেননি। যেকোনো লেখা খুলে “সংরক্ষণ করুন” চাপলেই এখানে জমা হবে।</p>';
 
   renderMyBuys();
@@ -1095,6 +1204,7 @@ const PAGES = [
   { t:'অডিও ও ভিডিও', s:'আলোচনা ও পাঠচক্র', h:'#audiovideo' },
   { t:'আপনার জিজ্ঞাসা', s:'প্রশ্ন পাঠান', h:'#qa' },
   { t:'লেখা পাঠান', s:'আমাদের জন্য লিখুন', h:'#submit' },
+  { t:'পাঠকের অনুভূতি', s:'যাঁরা পড়েছেন তাঁদের কথা', h:'#feedback' },
   { t:'এজেন্ট ও মাকতাবা', s:'যেখানে পত্রিকা পাওয়া যায়', h:'#outlets' },
   { t:'দাওয়াতি ফান্ড', s:'বিকাশ / নগদ / রকেট', h:'#donate' }
 ];
@@ -1104,14 +1214,14 @@ function renderSearch(q){
   if (!q.trim()){ box.hidden = true; box.innerHTML = ''; return; }
   const k = q.toLowerCase();
   const arts = ARTICLES.filter(a =>
-    [a.title, a.excerpt, authorById(a.author).name, catById(a.cat).name].join(' ').toLowerCase().includes(k)
+    [a.title, excerptOf(a), authorName(a), catById(a.cat).name].join(' ').toLowerCase().includes(k)
   ).slice(0, 6);
   const outs = OUTLETS.filter(o =>
     [o.name, o.address, o.district, o.division].join(' ').toLowerCase().includes(k)).slice(0, 3);
   const pages = PAGES.filter(p => (p.t + p.s).toLowerCase().includes(k)).slice(0, 3);
 
   const html =
-    arts.map(a => `<button class="sres" data-open="${a.id}"><b>${esc(a.title)}</b><span>${esc(catById(a.cat).name)} • ${esc(authorById(a.author).name)}</span></button>`).join('') +
+    arts.map(a => `<button class="sres" data-open="${a.id}"><b>${esc(a.title)}</b><span>${esc(catById(a.cat).name)} • ${esc(authorName(a))}</span></button>`).join('') +
     outs.map(o => `<a class="sres" href="#outlets" data-goto><b>${esc(o.name)}</b><span>${esc(o.kind || '')} • ${esc(o.address)}</span></a>`).join('') +
     pages.map(p => `<a class="sres" href="${p.h}" data-goto><b>${p.t}</b><span>${p.s}</span></a>`).join('');
 
@@ -1144,6 +1254,7 @@ function renderAll(){
   renderIssues();
   renderAuthors();
   renderMediaEtc();
+  renderFeedback();
   renderOutletFilters();
   renderOutlets();
   $$('.bn-num').forEach(el => { el.textContent = bn(el.textContent); });
@@ -1171,8 +1282,15 @@ function wireUI(){
     };
     if (matchMedia('(min-width: 761px)').matches){
       const li = btn.closest('.nav__has-sub');
-      li.addEventListener('mouseenter', () => { closeSubs(menu); menu.classList.add('is-open'); btn.setAttribute('aria-expanded', true); });
-      li.addEventListener('mouseleave', () => { menu.classList.remove('is-open'); btn.setAttribute('aria-expanded', false); });
+      let timer = null;
+      const open  = () => { clearTimeout(timer); closeSubs(menu); menu.classList.add('is-open'); btn.setAttribute('aria-expanded', true); };
+      const close = () => { menu.classList.remove('is-open'); btn.setAttribute('aria-expanded', false); };
+      // মাউস সরে গেলেই বন্ধ না করে একটু সময় দিই — নিচের অপশনে যেতে যেন সুবিধা হয়
+      li.addEventListener('mouseenter', open);
+      li.addEventListener('mouseleave', () => { clearTimeout(timer); timer = setTimeout(close, 600); });
+      menu.addEventListener('mouseenter', () => clearTimeout(timer));
+      li.addEventListener('focusin', open);
+      li.addEventListener('focusout', () => { clearTimeout(timer); timer = setTimeout(() => { if (!li.contains(document.activeElement)) close(); }, 600); });
     }
   });
   document.addEventListener('click', () => closeSubs());
@@ -1187,6 +1305,15 @@ function wireUI(){
   sinput.addEventListener('input', e => { state.q = e.target.value; renderSearch(e.target.value); renderArticles(); });
 
   document.addEventListener('click', e => {
+    const af = e.target.closest('[data-authfilter]');
+    if (af){
+      state.author = af.dataset.authfilter;
+      const sel = $('#authorFilter'); if (sel) sel.value = state.author;
+      renderArticles();
+      document.getElementById('archive')?.scrollIntoView({ behavior:'smooth', block:'start' });
+      return;
+    }
+
     if (e.target.closest('[data-qclose]')){ closeQuote(); return; }
 
     const share = e.target.closest('[data-share]');
@@ -1293,7 +1420,7 @@ function wireUI(){
         if (email) AD.resetPassword(email)
           .then(() => toast('ইমেইলে পাসওয়ার্ড বদলানোর লিংক পাঠানো হয়েছে'))
           .catch(() => toast('লিংক পাঠানো গেল না'));
-      } else openAuth(m);
+      } else openAuth(m, { email: sw.dataset.email || '' });
       return;
     }
 
@@ -1327,6 +1454,7 @@ function wireUI(){
   });
   wireForm(qaForm, $('#qaNote'), 'প্রশ্নটি পৌঁছেছে। জবাব প্রস্তুত হলে ইমেইলে জানানো হবে, ইনশাআল্লাহ।');
   wireForm($('#subForm'),   $('#subNote'),   'যুক্ত হয়েছেন। নতুন সংখ্যার খবর ইমেইলে পাবেন।');
+  wireForm($('#onuvutiForm'), $('#onuvutiNote'), 'আপনার কথা পৌঁছে গেছে। জাযাকাল্লাহু খাইরান।');
   wireForm($('#lekhaForm'), $('#lekhaNote'), 'লেখাটি পৌঁছেছে। সম্পাদনা পরিষদ যাচাই করে ইমেইলে জানাবে, ইনশাআল্লাহ।');
 
   const toTop = $('#toTop'), head = $('#head');

@@ -46,8 +46,8 @@ collections:
                   pattern: ['^[a-z0-9-]+$', 'কেবল ছোট হাতের ইংরেজি অক্ষর, সংখ্যা ও হাইফেন'] }
               - { name: "thumb", label: "থাম্বনেইল ছবি", widget: "image", required: false,
                   hint: "কার্ডে দেখানো ছবি। প্রস্থ ৮০০ থেকে ১২০০ পিক্সেল হলে ভালো। না দিলে রঙিন প্রচ্ছদ তৈরি হবে।" }
-              - { name: "excerpt", label: "সংক্ষিপ্তসার", widget: "text",
-                  hint: "কার্ডে যে দুই-তিন লাইন দেখাবে।" }
+              - { name: "excerpt", label: "সংক্ষিপ্তসার / চুম্বকাংশ", widget: "text", required: false,
+                  hint: "না দিলেও চলবে। কার্ডে যে দুই-তিন লাইন দেখাবে। ফাঁকা রাখলে মূল লেখার শুরুর অংশ দেখাবে।" }
               - { name: "date", label: "প্রকাশের তারিখ", widget: "datetime", required: false,
                   date_format: "DD/MM/YYYY", time_format: false, picker_utc: false,
                   hint: "“সর্বশেষ লেখা” অনুযায়ী সাজাতে এটি ব্যবহৃত হয়।" }
@@ -64,9 +64,13 @@ collections:
                 widget: "relation"
                 collection: "taxonomy"
                 file: "authors"
+                required: false
                 value_field: "authors.*.id"
                 display_fields: ["authors.*.name"]
                 search_fields: ["authors.*.name"]
+                hint: "তালিকায় থাকা লেখক হলে এখান থেকে বেছে নিন। অতিথি লেখক হলে এটি ফাঁকা রেখে নিচের ঘরে নাম লিখুন।"
+              - { name: "guest", label: "অতিথি লেখকের নাম", widget: "string", required: false,
+                  hint: "যিনি লেখকবৃন্দের তালিকায় নেই, তাঁর নাম এখানে লিখুন। লিখলে উপরের লেখক বাছাই আর কাজে লাগবে না।" }
               - name: "kind"
                 label: "প্রকাশের ধরন"
                 widget: "select"
@@ -87,8 +91,9 @@ collections:
               - { name: "page", label: "পত্রিকার পৃষ্ঠা নম্বর", widget: "number", value_type: "int",
                   required: false, min: 1,
                   hint: "ঐচ্ছিক। পত্রিকার লেখা হলে পৃষ্ঠা নম্বর দিলে পাঠক মিলিয়ে নিতে পারবেন।" }
-              - { name: "read", label: "পড়ার সময় (মিনিট)", widget: "number",
-                  value_type: "int", min: 1, max: 90, default: 10 }
+              - { name: "read", label: "পড়ার সময় (মিনিট)", widget: "number", required: false,
+                  value_type: "int", min: 1, max: 90,
+                  hint: "না দিলেও চলবে। ফাঁকা রাখলে সাইটে দেখাবে না।" }
               - { name: "lead", label: "হোমপেজের প্রধান লেখা", widget: "boolean", default: false,
                   hint: "প্রতি সংখ্যায় একটিমাত্র লেখায় এটি চালু রাখুন।" }
               - name: "body"
@@ -100,7 +105,15 @@ collections:
                     label: "অনুচ্ছেদ"
                     summary: "{{fields.text}}"
                     fields:
-                      - { name: "text", label: "লেখা", widget: "text" }
+                      - { name: "text", label: "লেখা", widget: "text", hint: "সাজসজ্জা: **বোল্ড**  *ইটালিক*  __আন্ডারলাইন__  [লেখা](লিংক)" }
+                      - name: "size"
+                        label: "লেখার আকার"
+                        widget: "select"
+                        default: "normal"
+                        options:
+                          - { label: "সাধারণ", value: "normal" }
+                          - { label: "বড়", value: "big" }
+                          - { label: "ছোট", value: "small" }
                   - name: "heading"
                     label: "উপশিরোনাম"
                     summary: "{{fields.text}}"
@@ -191,8 +204,10 @@ collections:
                   pattern: ['^[a-z0-9-]+$', 'কেবল ছোট হাতের ইংরেজি অক্ষর, সংখ্যা ও হাইফেন'] }
               - { name: "photo", label: "ছবি", widget: "image", required: false,
                   hint: "বর্গাকার ছবি হলে ভালো দেখায়। না দিলে নামের প্রথম অক্ষর দেখাবে।" }
-              - { name: "role", label: "পদ / পরিচয়", widget: "string", hint: "যেমন: নিয়মিত লেখক" }
-              - { name: "bio", label: "সংক্ষিপ্ত পরিচিতি", widget: "text" }
+              - { name: "role", label: "পদ / পরিচয়", widget: "string", required: false, hint: "না দিলেও চলবে। যেমন: নিয়মিত লেখক" }
+              - { name: "bio", label: "সংক্ষিপ্ত পরিচিতি", widget: "text", required: false }
+              - { name: "featured", label: "নিয়মিত লেখক", widget: "boolean", default: true,
+                  hint: "টিক থাকলে লেখকবৃন্দ পাতায় ছবি ও পরিচিতিসহ উপরে দেখাবেন। টিক তুলে দিলে নিচের ছোট তালিকায় কেবল নাম থাকবে।" }
 
       - name: "categories"
         label: "বিভাগসমূহ"
@@ -311,7 +326,7 @@ collections:
             widget: "list"
             summary: "{{fields.text}}"
             fields:
-              - { name: "text", label: "লেখা", widget: "text" }
+              - { name: "text", label: "লেখা", widget: "text", hint: "সাজসজ্জা: **বোল্ড**  *ইটালিক*  __আন্ডারলাইন__  [লেখা](লিংক)" }
           - { name: "board_title", label: "পরিষদের শিরোনাম", widget: "string", default: "সম্পাদনা পরিষদ" }
           - name: "board"
             label: "সম্পাদনা পরিষদ"
@@ -348,6 +363,26 @@ collections:
             fields:
               - { name: "text", label: "আয়াত / হাদীস / বাণী", widget: "text" }
               - { name: "source", label: "সূত্র", widget: "string" }
+
+      - name: "feedback"
+        label: "পাঠকের অনুভূতি"
+        file: "content/feedback.json"
+        description: "পাঠকদের মতামত। যাঁর কথা লিখছেন, তাঁর অনুমতি নিয়ে নেবেন।"
+        fields:
+          - { name: "intro", label: "সেকশনের পরিচিতি", widget: "text", required: false }
+          - name: "items"
+            label: "তালিকা"
+            label_singular: "নতুন অনুভূতি"
+            widget: "list"
+            summary: "{{fields.name}} — {{fields.meta}}"
+            collapsed: true
+            fields:
+              - { name: "name", label: "নাম", widget: "string" }
+              - { name: "meta", label: "পরিচয়", widget: "string", required: false,
+                  hint: "যেমন: শিক্ষার্থী — ঢাকা। না দিলেও চলবে।" }
+              - { name: "text", label: "যা বলেছেন", widget: "text" }
+              - { name: "demo", label: "নমুনা", widget: "boolean", default: false,
+                  hint: "টিক দিলে পাশে “নমুনা” লেখা দেখাবে। আসল মতামত যোগ করার সময় টিক তুলে দেবেন।" }
 
       - name: "outlets"
         label: "এজেন্ট ও মাকতাবা"
@@ -413,6 +448,7 @@ collections:
           - { name: "facebook", label: "ফেসবুক পেজের লিংক", widget: "string" }
           - { name: "youtube", label: "ইউটিউব চ্যানেলের লিংক", widget: "string" }
           - { name: "telegram", label: "টেলিগ্রাম চ্যানেলের লিংক", widget: "string" }
+          - { name: "whatsapp", label: "হোয়াটসঅ্যাপ কমিউনিটির লিংক", widget: "string", required: false }
           - { name: "email", label: "ইমেইল", widget: "string" }
           - { name: "phone", label: "ফোন", widget: "string" }
           - { name: "address", label: "ঠিকানা", widget: "text" }

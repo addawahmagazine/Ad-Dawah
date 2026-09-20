@@ -80,6 +80,19 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:4px}
 
 .wrap{width:min(100% - 40px,var(--wrap));margin-inline:auto}
+
+/* বড় মনিটরে সাইটটি যেন মাঝখানে ছোট হয়ে না থাকে —
+   জায়গা বাড়ার সাথে সাথে চওড়া ও লেখার আকার একটু করে বাড়ে */
+@media (min-width:1500px){
+  :root{--wrap:1340px}
+  body{font-size:18.5px}
+  .hero__in{gap:70px;padding:72px 0 80px}
+  .hero__lede{font-size:19px}
+}
+@media (min-width:1800px){
+  :root{--wrap:1500px}
+  body{font-size:19.5px}
+}
 .skip-link{position:absolute;left:-9999px;top:0;background:var(--brand);color:#fff;padding:10px 16px;z-index:200}
 .skip-link:focus{left:12px;top:12px}
 
@@ -141,6 +154,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .nav__subtoggle svg{width:15px;height:15px;transition:transform .2s}
 .nav__subtoggle[aria-expanded="true"] svg{transform:rotate(180deg)}
 .nav__has-sub{position:relative}
+@media (min-width:761px){.nav__sub::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px}}
 .nav__sub{position:absolute;top:calc(100% + 6px);inset-inline-start:0;min-width:250px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);box-shadow:var(--shadow-l);padding:8px;display:none;z-index:70}
 .nav__sub.is-open{display:block}
 .nav__sub a{display:block;padding:9px 13px;border-radius:var(--r-s);text-decoration:none;font-size:15.5px;color:var(--muted);transition:background .2s,color .2s}
@@ -242,6 +256,13 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .card__cat{font-size:12.5px;font-weight:600;margin:0 0 10px}
 .card__h{font-family:var(--font-display);font-size:21px;font-weight:600;line-height:1.6;margin:0 0 10px}
 .card__x{color:var(--muted);font-size:15px;line-height:1.85;margin:0 0 16px;flex:1}
+/* কার্ডে "আরো পড়ুন" — পুরো কার্ডেই ক্লিক চলে, এটি শুধু পথটা দেখিয়ে দেয় */
+.card__x{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.card__more{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;margin:0 0 16px;padding:9px 18px;border:0;border-radius:var(--r-pill);background:var(--brand);color:#fff;font-family:var(--font-body);font-size:14.5px;font-weight:600;cursor:pointer;transition:background .18s,transform .18s}
+.card__more svg{width:15px;height:15px}
+.card__more:hover{background:var(--brand-deep)}
+[data-theme="dark"] .card__more{color:#07130F}
+.card:hover .card__more{transform:translateX(2px)}
 .card__foot{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);border-top:1px solid var(--line-soft);padding-top:12px}
 .card__share{display:flex;gap:2px}
 .shr{width:30px;height:30px;display:grid;place-items:center;border:0;background:none;border-radius:50%;color:var(--muted);cursor:pointer;transition:background .18s,color .18s}
@@ -341,8 +362,45 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .form__note{margin:0;font-size:14.5px;color:var(--brand);min-height:1.2em}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 
+/* অনুচ্ছেদের আকার ও ভেতরের সাজসজ্জা */
+.art__body .para--big{font-size:1.14em;line-height:1.85}
+.art__body .para--small{font-size:.9em;color:var(--muted)}
+.art__body strong{font-weight:700}
+.art__body em{font-style:italic}
+.art__body u{text-decoration:underline;text-underline-offset:3px}
+.art__body a{color:var(--brand);text-decoration:underline;text-underline-offset:3px}
+
+/* পাঠকের অনুভূতি — পাঠানোর ফর্ম */
+.fbshare{margin-top:34px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:28px 26px;display:grid;grid-template-columns:.85fr 1.15fr;gap:32px;align-items:start}
+.fbshare__intro h3{font-size:21px;margin:0 0 10px}
+.fbshare__intro p{color:var(--muted);font-size:15px;margin:0;max-width:40ch}
+.fbshare__form{margin:0}
+.fld--check{display:flex;flex-direction:row;align-items:center;gap:10px;font-size:14.5px;color:var(--muted);cursor:pointer}
+.fld--check input{width:17px;height:17px;flex:none;accent-color:var(--brand);margin:0}
+@media (max-width:760px){
+  .fbshare{grid-template-columns:1fr;gap:22px;padding:24px 20px}
+}
+
+/* পাঠকের অনুভূতি */
+.fbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
+.fb{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:24px 22px;display:flex;flex-direction:column;gap:14px;transition:box-shadow .2s}
+.fb:hover{box-shadow:var(--shadow-m)}
+.fb__q{margin:0;font-size:15.5px;line-height:1.95;color:var(--ink)}
+.fb__q::before{content:"\201C";display:block;font-family:var(--font-display);font-size:38px;line-height:.6;color:var(--brand-soft);margin-bottom:8px}
+.fb__who{display:flex;align-items:center;gap:12px;margin-top:auto;border-top:1px solid var(--line-soft);padding-top:14px}
+.fb__av{width:40px;height:40px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);font-family:var(--font-display);font-size:17px;font-weight:700}
+.fb__n{margin:0;font-size:15.5px;font-weight:600}
+.fb__m{margin:0;font-size:13px;color:var(--muted)}
+
 /* লেখক */
 .authors{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px}
+.guests{margin-top:30px;border-top:1px solid var(--line);padding-top:22px}
+.guests__h{font-size:17px;margin:0 0 14px;color:var(--muted)}
+.guests__list{display:flex;flex-wrap:wrap;gap:9px}
+.guests__i{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-size:14.5px;color:var(--ink);cursor:pointer;font-family:var(--font-body);transition:background .2s,color .2s,border-color .2s}
+.guests__i:hover{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-soft)}
+.guests__i span{color:var(--muted);font-size:13px;margin-inline-start:5px}
+.guests__i:hover span{color:var(--brand)}
 .auth{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:26px 22px;text-align:center;transition:box-shadow .2s}
 .auth:hover{box-shadow:var(--shadow-m)}
 .auth__av{width:68px;height:68px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:var(--brand-soft);color:var(--brand);font-family:var(--font-display);font-size:25px;font-weight:700}
@@ -428,6 +486,10 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
    ফুটার — হালকা
    ========================================================================== */
 .foot{background:var(--bg-tint);color:var(--muted);padding:58px 0 0;font-size:15px;border-top:1px solid var(--line)}
+.foot__socials{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.foot__soc{display:inline-flex;align-items:center;gap:7px;padding:7px 14px 7px 11px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-pill);color:var(--muted);text-decoration:none;font-size:13.5px;line-height:1;transition:background .18s,border-color .18s,color .18s}
+.foot__soc svg{width:16px;height:16px;fill:currentColor;flex:none}
+.foot__soc:hover{background:var(--brand-soft);border-color:var(--brand-soft);color:var(--brand)}
 .foot__in{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.3fr;gap:38px;padding-bottom:40px}
 .foot h3{color:var(--text);font-size:17.5px;margin:0 0 14px}
 .foot a{text-decoration:none;transition:color .18s}
@@ -653,6 +715,7 @@ h1,h2,h3,h4,
 .sbtn--mark.is-on{border-color:transparent;background:var(--brand-soft);color:var(--brand)}
 .sbtn--mark{margin-inline-end:auto}
 
+.linkbtn{border:0;background:none;color:var(--brand);font-family:var(--font-body);font-size:inherit;cursor:pointer;padding:0;text-decoration:underline}
 .authswitch{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
 .authswitch button{border:0;background:none;color:var(--brand);font-family:var(--font-body);font-size:15px;cursor:pointer;padding:0}
 .authswitch button:hover{text-decoration:underline}

@@ -53,12 +53,25 @@ AD.ready = (async () => {
 })();
 
 /* ------------------------------------------------------------ অ্যাকাউন্ট */
-AD.signUp = async (email, password, name) => {
+AD.signUp = async (email, password, name, phone) => {
+  const meta = { name };
+  if (phone) meta.phone = phone;
   const { data, error } = await AD.client.auth.signUp({
-    email, password, options: { data: { name } }
+    email, password, options: { data: meta }
   });
   if (error) throw error;
   return data;
+};
+
+/* এই ইমেইলে আদৌ কোনো অ্যাকাউন্ট আছে কি না — লগইন ব্যর্থ হলে বার্তা ঠিক করতে ব্যবহার হয়।
+   ডেটাবেইসে account_exists ফাংশনটি না থাকলে null ফেরে, তখন সাধারণ বার্তা দেখানো হয়। */
+AD.accountExists = async email => {
+  if (!AD.client || !email) return null;
+  try {
+    const { data, error } = await AD.client.rpc('account_exists', { addr: email });
+    if (error) return null;
+    return data === true;
+  } catch (e) { return null; }
 };
 
 AD.signIn = async (email, password) => {
@@ -83,6 +96,8 @@ AD.signOut = async () => {
 
 AD.userName = () =>
   AD.user?.user_metadata?.name || (AD.user?.email || '').split('@')[0] || '';
+
+AD.userPhone = () => AD.user?.user_metadata?.phone || '';
 
 /* -------------------------------------------------------------- বুকমার্ক */
 async function loadBookmarks(){

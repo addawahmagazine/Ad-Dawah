@@ -115,6 +115,9 @@
       <a id="lnkTelegram" href="https://t.me/" target="_blank" rel="noopener" aria-label="টেলিগ্রাম">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 4.3 2.9 11.5c-.9.4-.9 1.6.1 1.9l4.6 1.4 1.8 5.4c.3.8 1.3 1 1.9.4l2.5-2.4 4.6 3.4c.7.5 1.7.1 1.9-.7l3.2-15c.2-.9-.7-1.7-1.9-1.6zM9.3 14.3l8.6-5.3-6.9 6.4-.3 3.3-1.4-4.4z"/></svg>
       </a>
+      <a id="lnkWhatsapp" href="https://chat.whatsapp.com/" target="_blank" rel="noopener" aria-label="হোয়াটসঅ্যাপ কমিউনিটি">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm5.3 14c-.2.6-1.2 1.2-1.7 1.2-.5.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.6s.6-1.8.9-2.1c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 1.9c.1.1.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.1.3.6 1.1 1.4 1.8 1 .9 1.8 1.1 2 1.2.3.1.4.1.6-.1l.8-1c.2-.2.4-.2.6-.1l1.8.9c.2.1.4.2.5.3 0 .1 0 .5-.2 1.1z"/></svg>
+      </a>
     </nav>
   </div>
 </div>
@@ -196,7 +199,7 @@
         <li><a href="#submit" class="nav__link">লেখা পাঠান</a></li>
         <li><a href="#about" class="nav__link">আমাদের সম্পর্কে</a></li>
         <li><a href="#outlets" class="nav__link">এজেন্ট ও মাকতাবা</a></li>
-        <li><a href="#donate" class="nav__link">ফান্ড পাঠান</a></li>
+        <li><a href="#feedback" class="nav__link">পাঠকের অনুভূতি</a></li>
         <li><a href="#contact" class="nav__link">যোগাযোগ</a></li>
       </ul>
     </nav>
@@ -270,8 +273,8 @@
 <section class="section" id="articles">
   <div class="wrap">
     <header class="sechead">
-      <h2 class="sechead__h">এই সংখ্যার লেখাসমূহ</h2>
-      <p class="sechead__p">বিভাগ, সংখ্যা বা লেখক অনুযায়ী ছেঁকে দেখুন।</p>
+      <h2 class="sechead__h">লেখাসমূহ</h2>
+      <p class="sechead__p">বিভাগ, সংখ্যা বা লেখক অনুযায়ী দেখুন।</p>
     </header>
 
     <div class="filters">
@@ -332,6 +335,10 @@
       <p class="sechead__p">যাঁদের কলমে সাজে আদ দাওয়াহ।</p>
     </header>
     <div class="authors" id="authorGrid"></div>
+    <div class="guests" id="guestAuthors" hidden>
+      <h3 class="guests__h">অতিথি লেখক</h3>
+      <div class="guests__list" id="guestList"></div>
+    </div>
   </div>
 </section>
 
@@ -454,6 +461,44 @@
   </div>
 </section>
 
+<!-- ===== READER FEEDBACK ===== -->
+<section class="section" id="feedback">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__h">পাঠকের অনুভূতি</h2>
+      <p class="sechead__p" id="fbIntro"></p>
+    </header>
+    <div class="fbs" id="fbGrid"></div>
+
+    <div class="fbshare">
+      <div class="fbshare__intro">
+        <h3>আপনার অনুভূতি শেয়ার করুন</h3>
+        <p>পত্রিকাটি পড়ে কেমন লাগল, জানান। নির্বাচিত কিছু মতামত এখানে প্রকাশ করা হবে, ইনশাআল্লাহ।</p>
+      </div>
+      <form class="form fbshare__form" id="onuvutiForm" name="onuvuti" method="POST"
+            data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="onuvuti">
+        <p hidden><label>এটি খালি রাখুন <input name="bot-field"></label></p>
+        <div class="frow">
+          <label class="fld"><span>আপনার নাম</span><input type="text" name="nam" required placeholder="পূর্ণ নাম"></label>
+          <label class="fld"><span>পরিচয় <em>(না দিলেও চলবে)</em></span>
+            <input type="text" name="porichoy" placeholder="যেমন: শিক্ষার্থী — ঢাকা"></label>
+        </div>
+        <label class="fld"><span>ইমেইল বা মোবাইল <em>(না দিলেও চলবে)</em></span>
+          <input type="text" name="jogajog" placeholder="প্রয়োজনে যোগাযোগের জন্য"></label>
+        <label class="fld"><span>আপনার কথা</span>
+          <textarea name="onuvuti" rows="4" required placeholder="যা মনে হয়েছে, খোলামেলা লিখুন।"></textarea></label>
+        <label class="fld fld--check">
+          <input type="checkbox" name="onumoti" value="হ্যাঁ" checked>
+          <span>নাম ও পরিচয়সহ ওয়েবসাইটে প্রকাশ করা যাবে</span>
+        </label>
+        <button class="btn btn--green btn--lg" type="submit">পাঠিয়ে দিন</button>
+        <p class="form__note" id="onuvutiNote" role="status"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
 <!-- ===== OUTLETS ===== -->
 <section class="section section--tint" id="outlets">
   <div class="wrap">
@@ -494,6 +539,20 @@
       <span class="brand__mark brand__mark--lg" aria-hidden="true"><svg viewBox="0 0 64 64"><use href="#logoMark"/></svg></span>
       <p class="foot__name"><svg class="foot__logo" role="img" aria-label="আদ দাওয়াহ"><use href="#wordmark"/></svg></p>
       <p class="foot__tag">কুরআন ও সুন্নাহর আলোকে পরিচালিত ত্রৈমাসিক ইসলামী পত্রিকা</p>
+      <nav class="foot__socials" aria-label="সোশ্যাল মিডিয়া">
+      <a id="fsFacebook" class="foot__soc foot__soc--fb" href="#" target="_blank" rel="noopener" aria-label="ফেসবুক">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h3l1-3h-4v-2c0-.6.4-1 1-1z"/></svg><span>ফেসবুক</span>
+      </a>
+      <a id="fsYoutube" class="foot__soc foot__soc--yt" href="#" target="_blank" rel="noopener" aria-label="ইউটিউব">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.8-1.8C18.3 5 12 5 12 5s-6.3 0-7.8.5a2.5 2.5 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.7c.2.9.9 1.6 1.8 1.8C5.7 19 12 19 12 19s6.3 0 7.8-.5a2.5 2.5 0 0 0 1.8-1.8C22 15.2 22 12 22 12zM10 15V9l5 3-5 3z"/></svg><span>ইউটিউব</span>
+      </a>
+      <a id="fsTelegram" class="foot__soc foot__soc--tg" href="#" target="_blank" rel="noopener" aria-label="টেলিগ্রাম">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 4.3 2.9 11.5c-.9.4-.9 1.6.1 1.9l4.6 1.4 1.8 5.4c.3.8 1.3 1 1.9.4l2.5-2.4 4.6 3.4c.7.5 1.7.1 1.9-.7l3.2-15c.2-.9-.7-1.7-1.9-1.6zM9.3 14.3l8.6-5.3-6.9 6.4-.3 3.3-1.4-4.4z"/></svg><span>টেলিগ্রাম</span>
+      </a>
+      <a id="fsWhatsapp" class="foot__soc foot__soc--wa" href="#" target="_blank" rel="noopener" aria-label="হোয়াটসঅ্যাপ">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm5.3 14c-.2.6-1.2 1.2-1.7 1.2-.5.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.6s.6-1.8.9-2.1c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 1.9c.1.1.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.1.3.6 1.1 1.4 1.8 1 .9 1.8 1.1 2 1.2.3.1.4.1.6-.1l.8-1c.2-.2.4-.2.6-.1l1.8.9c.2.1.4.2.5.3 0 .1 0 .5-.2 1.1z"/></svg><span>হোয়াটসঅ্যাপ</span>
+      </a>
+      </nav>
     </div>
     <div class="foot__col">
       <h3>যোগাযোগ</h3>
@@ -509,6 +568,7 @@
         <li><a href="#submit">লেখা পাঠান</a></li>
         <li><a href="#submitRules">লেখা পাঠানোর নিয়ম</a></li>
         <li><a href="#outlets">এজেন্ট ও মাকতাবা</a></li>
+        <li><a href="#feedback">পাঠকের অনুভূতি</a></li>
         <li><a href="#donate">ফান্ড পাঠান</a></li>
         <li><a href="admin/">সম্পাদনা প্যানেল</a></li>
       </ul>
@@ -526,7 +586,6 @@
   </div>
   <div class="wrap foot__bar">
     <p>© <span class="bn-num" id="yearNow">2026</span> আদ দাওয়াহ। সর্বস্বত্ব সংরক্ষিত।</p>
-    <p>লেখা পুনঃপ্রকাশে সূত্র উল্লেখ করুন।</p>
     <p class="stats" id="visitStats" hidden></p>
     <p class="foot__dev">ওয়েবসাইট সম্পর্কে কোনো অভিযোগ বা পরামর্শ থাকলে যোগাযোগ করুন —
       <a href="https://www.facebook.com/irfannabil99" target="_blank" rel="noopener">ইরফান নাবিল</a></p>
