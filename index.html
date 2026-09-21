@@ -35,6 +35,14 @@
   "publisher": { "@type": "Organization", "name": "আদ দাওয়াহ প্রকাশনা" }
 }
 </script>
+<script>
+  try{
+    var r = document.documentElement.style;
+    var b = localStorage.getItem('ad-font-bn'), a = localStorage.getItem('ad-font-ar');
+    if (b) r.setProperty('--font-bn', "'" + b + "'");
+    if (a) r.setProperty('--font-ar', "'" + a + "'");
+  }catch(e){}
+</script>
 </head>
 <body>
 
@@ -160,6 +168,9 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
         <span class="iconbtn__dot" hidden></span>
       </button>
+      <button class="iconbtn iconbtn--font" id="fontToggle" aria-label="ফন্ট বদলান" aria-expanded="false" aria-controls="fontPanel">
+        <span aria-hidden="true">ফন্ট</span>
+      </button>
       <button class="iconbtn" id="themeToggle" aria-label="রাতের মোড চালু করুন">
         <svg class="ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
         <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
@@ -184,7 +195,12 @@
           </button>
           <ul class="nav__sub" id="navCats"></ul>
         </li>
-        <li><a href="#authors" class="nav__link">লেখকবৃন্দ</a></li>
+        <li class="nav__has-sub">
+          <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navAuthors" data-spy="authors">লেখকবৃন্দ
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <ul class="nav__sub" id="navAuthors"></ul>
+        </li>
         <li class="nav__has-sub">
           <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navInfo" data-spy="infographics">ইনফোগ্রাফিক্স
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
@@ -198,8 +214,8 @@
         <li><a href="#qa" class="nav__link">আপনার জিজ্ঞাসা</a></li>
         <li><a href="#submit" class="nav__link">লেখা পাঠান</a></li>
         <li><a href="#about" class="nav__link">আমাদের সম্পর্কে</a></li>
-        <li><a href="#outlets" class="nav__link">এজেন্ট ও মাকতাবা</a></li>
         <li><a href="#feedback" class="nav__link">পাঠকের অনুভূতি</a></li>
+        <li><a href="#outlets" class="nav__link">এজেন্ট ও মাকতাবা</a></li>
         <li><a href="#contact" class="nav__link">যোগাযোগ</a></li>
       </ul>
     </nav>
@@ -335,6 +351,7 @@
       <p class="sechead__p">যাঁদের কলমে সাজে আদ দাওয়াহ।</p>
     </header>
     <div class="authors" id="authorGrid"></div>
+    <div class="authors__more" id="authorsMore" hidden></div>
     <div class="guests" id="guestAuthors" hidden>
       <h3 class="guests__h">অতিথি লেখক</h3>
       <div class="guests__list" id="guestList"></div>
@@ -648,5 +665,21 @@
 <script src="assets/config.js"></script>
 <script type="module" src="assets/auth.js"></script>
 <script src="assets/app.js"></script>
+
+<!-- ===== ফন্ট বাছাই ===== -->
+<div class="fontpanel" id="fontPanel" role="dialog" aria-label="ফন্ট বাছাই" hidden>
+  <div class="fontpanel__head">
+    <h3>ফন্ট বাছাই</h3>
+    <button class="fontpanel__x" data-fontclose aria-label="বন্ধ করুন">✕</button>
+  </div>
+
+  <p class="fontpanel__lbl">বাংলা ফন্ট</p>
+  <div class="fontpanel__opts" id="fontBnOpts"></div>
+
+  <p class="fontpanel__lbl">আরবি ফন্ট</p>
+  <div class="fontpanel__opts" id="fontArOpts"></div>
+
+  <button class="fontpanel__reset" data-fontreset>আগের মতো করুন</button>
+</div>
 </body>
 </html>

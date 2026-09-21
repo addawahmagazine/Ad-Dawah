@@ -94,7 +94,7 @@ collections:
               - { name: "read", label: "পড়ার সময় (মিনিট)", widget: "number", required: false,
                   value_type: "int", min: 1, max: 90,
                   hint: "না দিলেও চলবে। ফাঁকা রাখলে সাইটে দেখাবে না।" }
-              - { name: "lead", label: "হোমপেজের প্রধান লেখা", widget: "boolean", default: false,
+              - { name: "lead", label: "হোমপেজের প্রধান লেখা", widget: "boolean", default: false, required: false,
                   hint: "প্রতি সংখ্যায় একটিমাত্র লেখায় এটি চালু রাখুন।" }
               - name: "body"
                 label: "মূল লেখা"
@@ -109,16 +109,41 @@ collections:
                       - name: "size"
                         label: "লেখার আকার"
                         widget: "select"
+                        required: false
                         default: "normal"
                         options:
                           - { label: "সাধারণ", value: "normal" }
                           - { label: "বড়", value: "big" }
                           - { label: "ছোট", value: "small" }
+                      - name: "align"
+                        label: "সাজানো"
+                        widget: "select"
+                        required: false
+                        default: "auto"
+                        hint: "আপনাআপনি রাখলে বাংলা বাঁ দিক থেকে, আরবি ডান দিক থেকে শুরু হবে।"
+                        options:
+                          - { label: "আপনাআপনি", value: "auto" }
+                          - { label: "বাঁয়ে", value: "left" }
+                          - { label: "মাঝখানে", value: "center" }
+                          - { label: "ডানে", value: "right" }
+                          - { label: "দুই পাশ সমান", value: "justify" }
                   - name: "heading"
                     label: "উপশিরোনাম"
                     summary: "{{fields.text}}"
                     fields:
                       - { name: "text", label: "উপশিরোনাম", widget: "string" }
+                      - name: "align"
+                        label: "সাজানো"
+                        widget: "select"
+                        required: false
+                        default: "auto"
+                        hint: "আপনাআপনি রাখলে বাংলা বাঁ দিক থেকে, আরবি ডান দিক থেকে শুরু হবে।"
+                        options:
+                          - { label: "আপনাআপনি", value: "auto" }
+                          - { label: "বাঁয়ে", value: "left" }
+                          - { label: "মাঝখানে", value: "center" }
+                          - { label: "ডানে", value: "right" }
+                          - { label: "দুই পাশ সমান", value: "justify" }
                   - name: "refute"
                     label: "খণ্ডন (দাবি ও জবাব)"
                     summary: "খণ্ডন — {{fields.claim}}"
@@ -132,7 +157,7 @@ collections:
                     summary: "{{fields.text}}"
                     fields:
                       - { name: "text", label: "উদ্ধৃতি", widget: "text" }
-                      - { name: "source", label: "সূত্র", widget: "string",
+                      - { name: "source", required: false, label: "সূত্র", widget: "string",
                           hint: "যেমন: সূরা আল-বাকারা, আয়াত ২৫৬" }
                   - name: "image"
                     label: "ছবি"
@@ -163,7 +188,7 @@ collections:
                   pattern: ['^[A-Za-z0-9._-]+$', 'ইংরেজি অক্ষর, সংখ্যা, বিন্দু, হাইফেন ও আন্ডারস্কোর চলবে'] }
               - { name: "hijri", label: "হিজরি তারিখ", widget: "string", hint: "যেমন: জুমাদাল ঊলা ১৪৪৮" }
               - { name: "greg", label: "ইংরেজি তারিখ", widget: "string", hint: "যেমন: নভেম্বর ২০২৬" }
-              - { name: "published", label: "প্রকাশিত", widget: "boolean", default: false }
+              - { name: "published", label: "প্রকাশিত", widget: "boolean", default: false, required: false }
               - { name: "preorder", label: "প্রি-অর্ডার নেওয়া হচ্ছে", widget: "boolean", default: false, required: false,
                   hint: "অপ্রকাশিত সংখ্যার জন্য চালু করলে হোমপেজে আলাদা প্রি-অর্ডার ব্যানার দেখাবে।" }
               - { name: "preorder_note", label: "প্রি-অর্ডারের ছোট বর্ণনা", widget: "text", required: false,
@@ -206,7 +231,7 @@ collections:
                   hint: "বর্গাকার ছবি হলে ভালো দেখায়। না দিলে নামের প্রথম অক্ষর দেখাবে।" }
               - { name: "role", label: "পদ / পরিচয়", widget: "string", required: false, hint: "না দিলেও চলবে। যেমন: নিয়মিত লেখক" }
               - { name: "bio", label: "সংক্ষিপ্ত পরিচিতি", widget: "text", required: false }
-              - { name: "featured", label: "নিয়মিত লেখক", widget: "boolean", default: true,
+              - { name: "featured", label: "নিয়মিত লেখক", widget: "boolean", default: true, required: false,
                   hint: "টিক থাকলে লেখকবৃন্দ পাতায় ছবি ও পরিচিতিসহ উপরে দেখাবেন। টিক তুলে দিলে নিচের ছোট তালিকায় কেবল নাম থাকবে।" }
 
       - name: "categories"
@@ -223,7 +248,7 @@ collections:
               - { name: "name", label: "বিভাগের নাম", widget: "string" }
               - { name: "id", label: "লিংক-নাম (ইংরেজি)", widget: "string",
                   pattern: ['^[a-z0-9-]+$', 'কেবল ছোট হাতের ইংরেজি অক্ষর, সংখ্যা ও হাইফেন'] }
-              - { name: "desc", label: "পরিচিতি", widget: "text" }
+              - { name: "desc", required: false, label: "পরিচিতি", widget: "text" }
               - { name: "color", label: "রঙ", widget: "color", default: "#0F5132" }
               - { name: "icon", label: "আইকনের SVG path", widget: "string", required: false,
                   default: "M12 3l7 4v5c0 4.4-3 8.3-7 9-4-.7-7-4.6-7-9V7l7-4z",
@@ -238,6 +263,7 @@ collections:
         file: "content/media.json"
         fields:
           - name: "infographics"
+            required: false
             label: "দাওয়াহ কার্ড"
             label_singular: "নতুন কার্ড"
             widget: "list"
@@ -247,7 +273,7 @@ collections:
               - { name: "image", label: "কার্ডের ছবি", widget: "image", required: false,
                   hint: "ছবি দিলে সেটিই কার্ড হিসেবে দেখাবে। না দিলে নিচের রঙ ও লেখা দিয়ে কার্ড তৈরি হবে।" }
               - { name: "title", label: "কার্ডের মূল কথা", widget: "text" }
-              - { name: "sub", label: "নিচের ছোট লাইন", widget: "string" }
+              - { name: "sub", required: false, label: "নিচের ছোট লাইন", widget: "string" }
               - name: "article"
                 label: "কোন লেখার সঙ্গে যুক্ত"
                 widget: "relation"
@@ -263,6 +289,7 @@ collections:
               - { name: "demo", label: "নমুনা (ডেমো)", widget: "boolean", default: false, required: false,
                   hint: "টিক দিলে সাইটে 'নমুনা' হিসেবে দেখাবে — খোলা বা শেয়ার করা যাবে না। আসল কনটেন্টে টিক দেবেন না।" }
           - name: "infographs"
+            required: false
             label: "ইনফোগ্রাফিক্স"
             label_singular: "নতুন ইনফোগ্রাফিক"
             widget: "list"
@@ -288,6 +315,7 @@ collections:
               - { name: "demo", label: "নমুনা (ডেমো)", widget: "boolean", default: false, required: false,
                   hint: "টিক দিলে সাইটে 'নমুনা' হিসেবে দেখাবে — খোলা বা শেয়ার করা যাবে না। আসল কনটেন্টে টিক দেবেন না।" }
           - name: "media"
+            required: false
             label: "অডিও ও ভিডিও"
             label_singular: "নতুন আইটেম"
             widget: "list"
@@ -295,13 +323,14 @@ collections:
             collapsed: true
             fields:
               - { name: "title", label: "শিরোনাম", widget: "string" }
-              - { name: "meta", label: "ধরন ও উৎস", widget: "string", hint: "যেমন: ভিডিও • সম্পাদকীয় বৈঠক" }
-              - { name: "length", label: "সময়", widget: "string", hint: "যেমন: ৪১ মিনিট" }
+              - { name: "meta", required: false, label: "ধরন ও উৎস", widget: "string", hint: "যেমন: ভিডিও • সম্পাদকীয় বৈঠক" }
+              - { name: "length", required: false, label: "সময়", widget: "string", hint: "যেমন: ৪১ মিনিট" }
               - { name: "link", label: "ইউটিউব / অডিও লিংক", widget: "string", required: false,
                   hint: "আপলোড করা ফাইলের জন্য লিখুন /uploads/ফাইলের-নাম.mp3" }
               - { name: "demo", label: "নমুনা (ডেমো)", widget: "boolean", default: false, required: false,
                   hint: "টিক দিলে সাইটে 'নমুনা' হিসেবে দেখাবে — খোলা বা শেয়ার করা যাবে না। আসল কনটেন্টে টিক দেবেন না।" }
           - name: "qa"
+            required: false
             label: "নমুনা প্রশ্নোত্তর"
             label_singular: "নতুন প্রশ্নোত্তর"
             widget: "list"
@@ -321,6 +350,7 @@ collections:
         fields:
           - { name: "heading", label: "সেকশনের শিরোনাম", widget: "string" }
           - name: "paragraphs"
+            required: false
             label: "অনুচ্ছেদসমূহ"
             label_singular: "নতুন অনুচ্ছেদ"
             widget: "list"
@@ -329,6 +359,7 @@ collections:
               - { name: "text", label: "লেখা", widget: "text", hint: "সাজসজ্জা: **বোল্ড**  *ইটালিক*  __আন্ডারলাইন__  [লেখা](লিংক)" }
           - { name: "board_title", label: "পরিষদের শিরোনাম", widget: "string", default: "সম্পাদনা পরিষদ" }
           - name: "board"
+            required: false
             label: "সম্পাদনা পরিষদ"
             label_singular: "নতুন সদস্য"
             widget: "list"
@@ -338,6 +369,7 @@ collections:
               - { name: "name", label: "নাম", widget: "string" }
           - { name: "qa_intro", label: "“আপনার জিজ্ঞাসা”-র পরিচিতি", widget: "text" }
           - name: "qa_points"
+            required: false
             label: "জিজ্ঞাসার নিয়মাবলি"
             label_singular: "নতুন পয়েন্ট"
             widget: "list"
@@ -352,9 +384,10 @@ collections:
         file: "content/quotes.json"
         description: "সাইটে ঢোকার সময় যে আয়াত, হাদীস বা বাণী দেখানো হবে। তালিকা থেকে একটি এলোমেলোভাবে বাছা হয়।"
         fields:
-          - { name: "enabled", label: "পপআপ চালু", widget: "boolean", default: true }
-          - { name: "show_once_per_visit", label: "একবার দেখানোর পর ওই ভিজিটে আর না দেখানো", widget: "boolean", default: true }
+          - { name: "enabled", label: "পপআপ চালু", widget: "boolean", default: true, required: false }
+          - { name: "show_once_per_visit", label: "একবার দেখানোর পর ওই ভিজিটে আর না দেখানো", widget: "boolean", default: true, required: false }
           - name: "quotes"
+            required: false
             label: "বাণীসমূহ"
             label_singular: "নতুন বাণী"
             widget: "list"
@@ -371,6 +404,7 @@ collections:
         fields:
           - { name: "intro", label: "সেকশনের পরিচিতি", widget: "text", required: false }
           - name: "items"
+            required: false
             label: "তালিকা"
             label_singular: "নতুন অনুভূতি"
             widget: "list"
@@ -381,16 +415,15 @@ collections:
               - { name: "meta", label: "পরিচয়", widget: "string", required: false,
                   hint: "যেমন: শিক্ষার্থী — ঢাকা। না দিলেও চলবে।" }
               - { name: "text", label: "যা বলেছেন", widget: "text" }
-              - { name: "demo", label: "নমুনা", widget: "boolean", default: false,
-                  hint: "টিক দিলে পাশে “নমুনা” লেখা দেখাবে। আসল মতামত যোগ করার সময় টিক তুলে দেবেন।" }
 
       - name: "outlets"
         label: "এজেন্ট ও মাকতাবা"
         file: "content/outlets.json"
         description: "সংখ্যা বাড়লে বিভাগ ও জেলা ধরে ছাঁকনি চালু করা হবে, তাই ঘরগুলো এখনই পূরণ করে রাখলে ভালো।"
         fields:
-          - { name: "intro", label: "সেকশনের পরিচিতি", widget: "text" }
+          - { name: "intro", required: false, label: "সেকশনের পরিচিতি", widget: "text" }
           - name: "outlets"
+            required: false
             label: "তালিকা"
             label_singular: "নতুন এজেন্ট / মাকতাবা"
             widget: "list"
@@ -400,7 +433,7 @@ collections:
               - { name: "name", label: "নাম", widget: "string" }
               - { name: "kind", label: "ধরন", widget: "select", options: ["মাকতাবা", "এজেন্ট"], default: "মাকতাবা" }
               - { name: "address", label: "ঠিকানা", widget: "text" }
-              - { name: "phone", label: "ফোন", widget: "string" }
+              - { name: "phone", required: false, label: "ফোন", widget: "string" }
               - { name: "map", label: "গুগল ম্যাপ লিংক", widget: "string", required: false,
                   hint: "গুগল ম্যাপে জায়গাটি খুলে Share → Copy link করে এখানে বসান।" }
               - { name: "division", label: "বিভাগ", widget: "string", required: false }
@@ -417,6 +450,7 @@ collections:
         description: "“চালু” বন্ধ থাকলে বিজ্ঞাপনটি সাইটে দেখাবে না। কোনো অবস্থানে চালু বিজ্ঞাপন না থাকলে জায়গাটি নিজে থেকেই লুকিয়ে যাবে।"
         fields:
           - name: "ads"
+            required: false
             label: "বিজ্ঞাপন"
             label_singular: "নতুন বিজ্ঞাপন"
             widget: "list"
@@ -435,7 +469,7 @@ collections:
                 options:
                   - { label: "লেখার তালিকার নিচে", value: "top" }
                   - { label: "আর্কাইভের আগে", value: "bottom" }
-              - { name: "active", label: "চালু", widget: "boolean", default: true }
+              - { name: "active", label: "চালু", widget: "boolean", default: true, required: false }
 
   # ------------------------------------------------------------- সেটিংস
   - name: "settings"
@@ -445,17 +479,18 @@ collections:
         label: "যোগাযোগ, মূল্য ও পেমেন্ট"
         file: "content/site.json"
         fields:
-          - { name: "facebook", label: "ফেসবুক পেজের লিংক", widget: "string" }
-          - { name: "youtube", label: "ইউটিউব চ্যানেলের লিংক", widget: "string" }
-          - { name: "telegram", label: "টেলিগ্রাম চ্যানেলের লিংক", widget: "string" }
+          - { name: "facebook", required: false, label: "ফেসবুক পেজের লিংক", widget: "string" }
+          - { name: "youtube", required: false, label: "ইউটিউব চ্যানেলের লিংক", widget: "string" }
+          - { name: "telegram", required: false, label: "টেলিগ্রাম চ্যানেলের লিংক", widget: "string" }
           - { name: "whatsapp", label: "হোয়াটসঅ্যাপ কমিউনিটির লিংক", widget: "string", required: false }
           - { name: "email", label: "ইমেইল", widget: "string" }
           - { name: "phone", label: "ফোন", widget: "string" }
           - { name: "address", label: "ঠিকানা", widget: "text" }
           - { name: "price_single", label: "এক সংখ্যার দাম (৳)", widget: "number", value_type: "int" }
-          - { name: "order_note", label: "অর্ডার ব্যানারের লেখা", widget: "text" }
-          - { name: "donate_note", label: "অনুদান সেকশনের লেখা", widget: "text" }
+          - { name: "order_note", required: false, label: "অর্ডার ব্যানারের লেখা", widget: "text" }
+          - { name: "donate_note", required: false, label: "অনুদান সেকশনের লেখা", widget: "text" }
           - name: "payments"
+            required: false
             label: "পেমেন্ট নম্বর"
             label_singular: "নতুন মাধ্যম"
             widget: "list"

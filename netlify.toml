@@ -4,6 +4,7 @@
 [build]
   publish = "."
   command = ""
+  functions = "netlify/functions"
 
 [[headers]]
   for = "/*"
@@ -24,16 +25,20 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
-# ফন্ট, লোগো ও ছবি — বদলায় না, তাই দীর্ঘ ক্যাশ
+# ফন্ট ও লোগো — বদলায় না, তাই দীর্ঘ ক্যাশ
 [[headers]]
   for = "/assets/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# আপলোড করা ছবি ও ফাইল — প্রতিবার যাচাই হবে।
+# আগে ৩০ দিনের ক্যাশ ছিল, ফলে ছবি আপলোডের আগে কেউ পাতাটি খুললে
+# "ছবি নেই" উত্তরটিও এক মাসের জন্য ব্রাউজারে আটকে যেত।
+# যাচাই হলেও ছবি নতুন করে নামে না — বদলায়নি বুঝলে ব্রাউজার আগেরটিই দেখায়।
 [[headers]]
   for = "/uploads/*"
   [headers.values]
-    Cache-Control = "public, max-age=2592000"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
   for = "/assets/*.svg"
@@ -43,7 +48,7 @@
 [[headers]]
   for = "/issues/*"
   [headers.values]
-    Cache-Control = "public, max-age=2592000"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 # কনটেন্ট ফাইল সবসময় টাটকা আসবে (CMS-এ সেভ করার পরপরই)
 [[headers]]

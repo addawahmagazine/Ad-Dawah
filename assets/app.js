@@ -18,11 +18,13 @@ let INFOGRAPHICS = [], INFOGRAPHS = [], MEDIA = [], QA_RECENT = [], SITE = {}, P
 let FEEDBACK = [], FEEDBACK_INTRO = '';
 let ABOUT = {}, QUOTES = {}, ADS = [], OUTLETS = [], OUTLET_INTRO = '';
 
-const catById    = id => CATS.find(c => c.id === id)    || CATS[0]    || { name:'', color:'#0F5132' };
-const issueById  = id => ISSUES.find(i => i.id === id)  || ISSUES[0]  || { label:'', greg:'', hijri:'' };
+/* খুঁজে না পেলে ফাঁকা ফেরত দিই — আগে তালিকার প্রথমটি বসে যেত,
+   ফলে মুছে ফেলা লেখক/বিভাগের লেখা অন্য কারো নামে দেখাত। */
+const catById    = id => CATS.find(c => c.id === id)    || { id:'', name:'', color:'#0F5132' };
+const issueById  = id => ISSUES.find(i => i.id === id)  || { id:'', label:'', greg:'', hijri:'' };
 const issueOf    = a => ISSUES.find(i => i.id === a.issue) || null;   // না থাকলে null
 const isWeb      = a => a.kind === 'web' || !a.issue;
-const authorById = id => AUTHORS.find(a => a.id === id) || AUTHORS[0] || { name:'' };
+const authorById = id => AUTHORS.find(a => a.id === id) || { id:'', name:'' };
 
 /* লেখকের নাম: তালিকার লেখক হলে তালিকা থেকে, নইলে "অতিথি লেখকের নাম" ঘর থেকে */
 const guestOf    = a => String(a?.guest || '').trim();
@@ -253,7 +255,7 @@ function applySite(){
 
   const s = SITE.price_single ?? 120;
   $('#orderNote').textContent =
-    `${SITE.order_note || ''} এক সংখ্যা ৳${bn(s)} — কুরিয়ার খরচসহ।`;
+    [SITE.order_note, `এক সংখ্যা ৳${bn(s)} — কুরিয়ার খরচসহ।`].filter(Boolean).join(' ');
   if (SITE.donate_note) $('#donateNote').textContent = SITE.donate_note;
 }
 
@@ -368,7 +370,7 @@ function articleCard(a){
   const d = bnDate(a.date);
   return `<article class="card card--thumbed" data-open="${a.id}" tabindex="0" role="button" aria-label="${esc(a.title)}">
     <div class="card__thumb">${thumb}
-      <span class="card__tag" style="background:${c.color}">${esc(c.name)}</span>
+      ${c.name ? `<span class="card__tag" style="background:${c.color}">${esc(c.name)}</span>` : ''}
       ${issueBadge(a)}
       ${viewBadge(a.id)}
     </div>
@@ -481,7 +483,7 @@ function renderCats(){
         <svg viewBox="0 0 24 24"><path d="${c.icon || 'M12 3l7 4v5c0 4.4-3 8.3-7 9-4-.7-7-4.6-7-9V7l7-4z'}"/></svg>
       </div>
       <h3>${esc(c.name)}</h3>
-      <p>${esc(c.desc)}</p>
+      ${c.desc ? `<p>${esc(c.desc)}</p>` : ''}
       <button data-jumpcat="${c.id}">${bn(n)}টি লেখা দেখুন</button>
     </div>`;
   }).join('');
@@ -572,12 +574,27 @@ function renderIssues(){
   }).join('');
 }
 
+const AUTHORS_SHOWN = 6;      // শুরুতে এতজন দেখাবে, বাকিরা বোতামে
+let authorsExpanded = false;
+
 function renderAuthors(){
   const countOf = id => ARTICLES.filter(x => !guestOf(x) && x.author === id).length;
   // "নিয়মিত লেখক" টিক না থাকলে নিচের ছোট তালিকায়। পুরনো লেখকদের টিক নেই, তাই তাঁদের নিয়মিত ধরা হয়।
   const isReg = a => a.featured !== false;
 
-  $('#authorGrid').innerHTML = AUTHORS.filter(isReg).map(a => {
+  const regs   = AUTHORS.filter(isReg);
+
+  // মেনুর তালিকা — কয়েকজনের নাম, তারপর "সব লেখক দেখুন"
+  const navSub = $('#navAuthors');
+  if (navSub) navSub.innerHTML =
+    regs.slice(0, 6).map(a =>
+      `<li><a href="#articles" data-authfilter="${esc(a.id)}">${esc(a.name)}</a></li>`).join('') +
+    `<li><a href="#authors" data-authors-all>সব লেখক দেখুন</a></li>`;
+
+  const hidden = Math.max(0, regs.length - AUTHORS_SHOWN);
+  const shown  = authorsExpanded ? regs : regs.slice(0, AUTHORS_SHOWN);
+
+  $('#authorGrid').innerHTML = shown.map(a => {
     const av = a.photo
       ? `<img src="${esc(a.photo)}" alt="${esc(a.name)}" loading="lazy">`
       : esc(String(a.name).trim().slice(0,1));
@@ -588,6 +605,13 @@ function renderAuthors(){
       <p class="auth__c">${a.bio ? esc(a.bio) + '<br>' : ''}${bn(countOf(a.id))}টি লেখা</p>
     </div>`;
   }).join('');
+
+  // বাকিদের জন্য বোতাম
+  const more = $('#authorsMore');
+  more.hidden = !hidden;
+  if (hidden) more.innerHTML =
+    `<button class="btn btn--ghost" data-authors-toggle>${
+      authorsExpanded ? 'কম দেখুন' : `আরও ${bn(hidden)} জন লেখক দেখুন`}</button>`;
 
   // অতিথি ও অনিয়মিত লেখক — কেবল নাম, ক্লিক করলে তাঁর লেখাগুলো দেখাবে
   const others = AUTHORS.filter(a => !isReg(a))
@@ -622,7 +646,7 @@ function renderInfoList(list, key, label, emptyMsg){
     const art = g.image
       ? `<div class="info__art info__art--img"><img src="${esc(g.image)}" alt="${esc(g.title)}" loading="lazy"></div>`
       : `<div class="info__art" style="background:linear-gradient(155deg,${g.from || '#064E3B'},${g.to || '#0F5132'})">
-           <p>${esc(g.title)}<small>${esc(g.sub || '')}</small></p></div>`;
+           <p>${esc(g.title)}${g.sub ? `<small>${esc(g.sub)}</small>` : ''}</p></div>`;
     const attrs = linked
       ? ` data-open="${g.article}" tabindex="0" role="button" aria-label="${esc(g.title)}"`
       : demo ? ` data-demo tabindex="0" role="button" aria-label="${esc(g.title)} (নমুনা)"` : '';
@@ -662,8 +686,8 @@ function renderMediaEtc(){
         ? `<a class="mitem__play" href="${esc(m.link)}" target="_blank" rel="noopener" aria-label="চালান">${icon}</a>`
         : `<button class="mitem__play" aria-label="চালান">${icon}</button>`;
     return `<li class="mitem${demo ? ' mitem--demo' : ''}">${play}
-      <div><p class="mitem__t">${esc(m.title)}${demo ? '<span class="demo-tag">নমুনা</span>' : ''}</p><p class="mitem__m">${esc(m.meta)}</p></div>
-      <span class="mitem__len">${esc(m.length)}</span>
+      <div><p class="mitem__t">${esc(m.title)}${demo ? '<span class="demo-tag">নমুনা</span>' : ''}</p>${m.meta ? `<p class="mitem__m">${esc(m.meta)}</p>` : ''}</div>
+      ${m.length ? `<span class="mitem__len">${esc(m.length)}</span>` : ''}
     </li>`;
   }).join('');
 
@@ -692,7 +716,7 @@ function renderFeedback(){
       <figcaption class="fb__who">
         <span class="fb__av" aria-hidden="true">${esc(String(f.name || '').trim().slice(0,1))}</span>
         <span>
-          <p class="fb__n">${esc(f.name)}${f.demo ? '<span class="demo-tag">নমুনা</span>' : ''}</p>
+          <p class="fb__n">${esc(f.name)}</p>
           ${f.meta ? `<p class="fb__m">${esc(f.meta)}</p>` : ''}
         </span>
       </figcaption>
@@ -790,17 +814,61 @@ function rich(txt){
   return h;
 }
 
+/* লেখার ভাষা চেনা — অক্ষর গুনে।
+   'ar' / 'bn', আর যে লাইনে বাংলা-আরবি কোনো অক্ষরই নেই (সংখ্যা, চিহ্ন) তার জন্য null */
+const AR_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g;
+const BN_RE = /[\u0980-\u09FF]/g;
+function langOf(txt){
+  const t = String(txt || '');
+  const ar = (t.match(AR_RE) || []).length, bn = (t.match(BN_RE) || []).length;
+  if (!ar && !bn) return null;
+  return ar >= bn * 2 ? 'ar' : 'bn';
+}
+const isArabic = t => langOf(t) === 'ar';
+
+/* একটা ঘরের লেখাকে ভাষা অনুযায়ী টুকরো করি।
+   ফাঁকা লাইনে নতুন অনুচ্ছেদ; একই অনুচ্ছেদে আয়াত আর অনুবাদ পরপর থাকলে সেগুলোও আলাদা হয়,
+   যাতে আয়াত ডানে আর অনুবাদ বাঁয়ে বসে। */
+function segments(text){
+  const out = [];
+  for (const block of String(text || '').split(/\n\s*\n/)){
+    let cur = null;
+    for (const line of block.split('\n')){
+      if (!line.trim()) continue;
+      const lg = langOf(line) || (cur && cur.lang) || 'bn';
+      if (cur && cur.lang === lg) cur.lines.push(line);
+      else { cur = { lang: lg, lines: [line] }; out.push(cur); }
+    }
+  }
+  return out.map(sg => ({ ar: sg.lang === 'ar', text: sg.lines.join('\n') }));
+}
+
+/* শ্রেণি ও ভাষা-চিহ্ন */
+function blockAttrs(b, ar){
+  const cls = [];
+  if (b.size && b.size !== 'normal') cls.push('para--' + b.size);
+  if (b.align && b.align !== 'auto') cls.push('al-' + b.align);
+  if (ar) cls.push('ar');
+  return (cls.length ? ` class="${esc(cls.join(' '))}"` : '') + (ar ? ' lang="ar" dir="rtl"' : '');
+}
+/* টুকরোগুলোকে <p> বানাই */
+const parasHTML = (text, b = {}) =>
+  segments(text).map(sg => `<p${blockAttrs(b, sg.ar)}>${rich(sg.text)}</p>`).join('');
+
 function bodyHTML(blocks){
   return (blocks || []).map(b => {
-    if (b.type === 'heading') return `<h3>${esc(b.text)}</h3>`;
-    if (b.type === 'quote')   return `<blockquote>${rich(b.text)}<footer>${esc(b.source || '')}</footer></blockquote>`;
+    if (b.type === 'heading') return `<h3${blockAttrs(b, isArabic(b.text))}>${esc(b.text)}</h3>`;
+    if (b.type === 'quote'){
+      const segs = segments(b.text);
+      const allAr = segs.length && segs.every(sg => sg.ar);
+      return `<blockquote${allAr ? ' class="ar" lang="ar" dir="rtl"' : ''}>${parasHTML(b.text)}${b.source ? `<footer dir="ltr">${esc(b.source)}</footer>` : ''}</blockquote>`;
+    }
     if (b.type === 'image')   return `<figure class="art__fig"><img src="${esc(b.src)}" alt="${esc(b.caption || '')}" loading="lazy">${b.caption ? `<figcaption>${esc(b.caption)}</figcaption>` : ''}</figure>`;
     if (b.type === 'refute')  return `<div class="refute">
-        <div class="refute__claim"><span class="refute__lbl">দাবি</span><p>${rich(b.claim)}</p></div>
-        <div class="refute__answer"><span class="refute__lbl">জবাব</span><p>${rich(b.answer)}</p></div>
+        <div class="refute__claim"><span class="refute__lbl">দাবি</span>${parasHTML(b.claim)}</div>
+        <div class="refute__answer"><span class="refute__lbl">জবাব</span>${parasHTML(b.answer)}</div>
       </div>`;
-    const size = b.size && b.size !== 'normal' ? ` class="para--${esc(b.size)}"` : '';
-    return `<p${size}>${rich(b.text)}</p>`;
+    return parasHTML(b.text, b);
   }).join('');
 }
 
@@ -814,7 +882,7 @@ function openArticle(id){
   const hero = a.thumb ? `<figure class="art__hero"><img src="${esc(a.thumb)}" alt="${esc(a.title)}"></figure>` : '';
   openModal(`
     ${hero}
-    <p class="art__cat" style="color:${c.color}">${esc(c.name)}</p>
+    ${c.name ? `<p class="art__cat" style="color:${c.color}">${esc(c.name)}</p>` : ''}
     <h2 class="art__h" id="modalTitle">${esc(a.title)}</h2>
     <div class="art__meta">
       <span>${esc(authorName(a))}</span>
@@ -1067,7 +1135,7 @@ async function openAccount(){
   const marks = [...AD.bookmarks].map(id => ARTICLES.find(a => a.id === id)).filter(Boolean);
   $('#acctMarks').innerHTML = marks.length
     ? marks.map(a => `<button class="acctitem" data-open="${a.id}">
-        <b>${esc(a.title)}</b><span>${esc(catById(a.cat).name)} • ${esc(authorName(a))}</span></button>`).join('')
+        <b>${esc(a.title)}</b><span>${[catById(a.cat).name, authorName(a)].filter(Boolean).map(esc).join(' • ')}</span></button>`).join('')
     : '<p class="acct__empty">এখনও কোনো লেখা সংরক্ষণ করেননি। যেকোনো লেখা খুলে “সংরক্ষণ করুন” চাপলেই এখানে জমা হবে।</p>';
 
   renderMyBuys();
@@ -1164,7 +1232,9 @@ function showQuote(){
   if (!QUOTES.enabled || !(QUOTES.quotes || []).length) return;
   if (location.hash.startsWith('#/lekha/')) return;   // সরাসরি লেখার লিংকে এলে দেখাব না
   const q = QUOTES.quotes[Math.floor(Math.random() * QUOTES.quotes.length)];
-  $('#qpopText').textContent = q.text;
+  // আরবি-বাংলা মিশ্র হলে প্রতিটি অংশ নিজের দিকে বসবে
+  $('#qpopText').innerHTML = segments(q.text)
+    .map(sg => `<span class="qpop__seg"${sg.ar ? ' lang="ar" dir="rtl"' : ''}>${esc(sg.text).replace(/\n/g,'<br>')}</span>`).join('');
   $('#qpopSrc').textContent = q.source || '';
   // বন্ধ করার বোতামে একেকবার একেক যিকির
   const ZIKR = ['আলহামদুলিল্লাহ', 'আল্লাহু আকবার', 'সুবহানাল্লাহ'];
@@ -1221,7 +1291,7 @@ function renderSearch(q){
   const pages = PAGES.filter(p => (p.t + p.s).toLowerCase().includes(k)).slice(0, 3);
 
   const html =
-    arts.map(a => `<button class="sres" data-open="${a.id}"><b>${esc(a.title)}</b><span>${esc(catById(a.cat).name)} • ${esc(authorName(a))}</span></button>`).join('') +
+    arts.map(a => `<button class="sres" data-open="${a.id}"><b>${esc(a.title)}</b><span>${[catById(a.cat).name, authorName(a)].filter(Boolean).map(esc).join(' • ')}</span></button>`).join('') +
     outs.map(o => `<a class="sres" href="#outlets" data-goto><b>${esc(o.name)}</b><span>${esc(o.kind || '')} • ${esc(o.address)}</span></a>`).join('') +
     pages.map(p => `<a class="sres" href="${p.h}" data-goto><b>${p.t}</b><span>${p.s}</span></a>`).join('');
 
@@ -1260,8 +1330,71 @@ function renderAll(){
   $$('.bn-num').forEach(el => { el.textContent = bn(el.textContent); });
 }
 
+
+/* =========================================================================
+   পাঠকের ফন্ট বাছাই — পছন্দটি ব্রাউজারে মনে থাকে
+   ========================================================================= */
+const FONTS_BN = [
+  { id:'SolaimanLipi',       name:'সুলাইমান লিপি',   note:'সাইটের নিজস্ব' },
+  { id:'Noto Serif Bengali', name:'নোটো সেরিফ বাংলা', note:'বইয়ের মতো' },
+  { id:'Tiro Bangla',        name:'তিরো বাংলা',       note:'ছাপার ধাঁচে' },
+  { id:'Hind Siliguri',      name:'হিন্দ শিলিগুড়ি',   note:'পরিচ্ছন্ন, আধুনিক' },
+];
+const FONTS_AR = [
+  { id:'Amiri',              name:'আমিরি',            note:'সাইটের নিজস্ব' },
+  { id:'Scheherazade New',   name:'শাহরাজাদ',         note:'বড় ও স্পষ্ট হরকত' },
+  { id:'Noto Naskh Arabic',  name:'নোটো নাসখ',        note:'সরল নাসখ' },
+];
+const SAMPLE_BN = 'আদ দাওয়াহ';
+const SAMPLE_AR = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+
+const store = {
+  get: k => { try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set: (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch(e){} },
+};
+
+function applyFonts(){
+  const r = document.documentElement.style;
+  const bn = store.get('ad-font-bn'), ar = store.get('ad-font-ar');
+  bn ? r.setProperty('--font-bn', `'${bn}'`) : r.removeProperty('--font-bn');
+  ar ? r.setProperty('--font-ar', `'${ar}'`) : r.removeProperty('--font-ar');
+}
+
+function renderFontPanel(){
+  const curBn = store.get('ad-font-bn') || FONTS_BN[0].id;
+  const curAr = store.get('ad-font-ar') || FONTS_AR[0].id;
+  const opt = (f, cur, kind, sample, rtl) => `
+    <button class="fopt${f.id === cur ? ' is-on' : ''}" data-font-${kind}="${esc(f.id)}" aria-pressed="${f.id === cur}">
+      <span class="fopt__sample" style="font-family:'${esc(f.id)}'"${rtl ? ' dir="rtl" lang="ar"' : ''}>${sample}</span>
+      <span class="fopt__name">${esc(f.name)}<small>${esc(f.note)}</small></span>
+    </button>`;
+  $('#fontBnOpts').innerHTML = FONTS_BN.map(f => opt(f, curBn, 'bn', SAMPLE_BN, false)).join('');
+  $('#fontArOpts').innerHTML = FONTS_AR.map(f => opt(f, curAr, 'ar', SAMPLE_AR, true)).join('');
+}
+
+function toggleFontPanel(open){
+  const panel = $('#fontPanel'), btn = $('#fontToggle');
+  const show = open ?? panel.hidden;
+  if (show) renderFontPanel();
+  panel.hidden = !show;
+  btn.setAttribute('aria-expanded', show);
+}
+
 function wireUI(){
   setTheme('light');   // ডিফল্ট দিনের মোড; পাঠক চাইলে বোতামে বদলাবেন
+  applyFonts();
+  $('#fontToggle').onclick = e => { e.stopPropagation(); toggleFontPanel(); };
+  $('#fontPanel').addEventListener('click', e => {
+    e.stopPropagation();
+    const bn = e.target.closest('[data-font-bn]'), ar = e.target.closest('[data-font-ar]');
+    if (bn){ store.set('ad-font-bn', bn.dataset.fontBn === FONTS_BN[0].id ? '' : bn.dataset.fontBn); applyFonts(); renderFontPanel(); }
+    if (ar){ store.set('ad-font-ar', ar.dataset.fontAr === FONTS_AR[0].id ? '' : ar.dataset.fontAr); applyFonts(); renderFontPanel(); }
+    if (e.target.closest('[data-fontreset]')){ store.set('ad-font-bn',''); store.set('ad-font-ar',''); applyFonts(); renderFontPanel(); }
+    if (e.target.closest('[data-fontclose]')) toggleFontPanel(false);
+  });
+  document.addEventListener('click', () => { if (!$('#fontPanel').hidden) toggleFontPanel(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#fontPanel').hidden) toggleFontPanel(false); });
+
   $('#themeToggle').onclick = () =>
     setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 
@@ -1305,12 +1438,28 @@ function wireUI(){
   sinput.addEventListener('input', e => { state.q = e.target.value; renderSearch(e.target.value); renderArticles(); });
 
   document.addEventListener('click', e => {
+    if (e.target.closest('[data-authors-all]')){
+      authorsExpanded = true;
+      renderAuthors();
+      closeSubs();
+      document.getElementById('authors')?.scrollIntoView({ behavior:'smooth', block:'start' });
+      return;
+    }
+
+    if (e.target.closest('[data-authors-toggle]')){
+      authorsExpanded = !authorsExpanded;
+      renderAuthors();
+      if (!authorsExpanded) document.getElementById('authors')?.scrollIntoView({ behavior:'smooth', block:'start' });
+      return;
+    }
+
     const af = e.target.closest('[data-authfilter]');
     if (af){
+      closeSubs();
       state.author = af.dataset.authfilter;
       const sel = $('#authorFilter'); if (sel) sel.value = state.author;
       renderArticles();
-      document.getElementById('archive')?.scrollIntoView({ behavior:'smooth', block:'start' });
+      document.getElementById('articles')?.scrollIntoView({ behavior:'smooth', block:'start' });
       return;
     }
 
