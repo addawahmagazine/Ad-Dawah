@@ -6,12 +6,15 @@ aside a[data-testid][href*="/collections/"]::after{
   flex-basis:100%;padding-inline-start:32px;margin-top:1px;font-size:12.5px;line-height:1.35;
   color:#7b8594;font-weight:400;white-space:normal}
 /* মেনুকে তিন ভাগে আলাদা করা: কনটেন্ট | পাতা ও তালিকা | যোগাযোগ */
-aside a[data-testid="pages"], aside a[data-testid="settings"]{position:relative;margin-top:14px}
+/* Decap-এর মেনু-লিংকে z-index:-1 থাকে; position দিলে লিংক তালিকার নিচে চাপা পড়ে, তাই z-index:0 */
+aside a[data-testid="pages"], aside a[data-testid="settings"]{position:relative;z-index:0;margin-top:14px}
 aside a[data-testid="pages"]::before, aside a[data-testid="settings"]::before{
   content:"";position:absolute;left:16px;right:16px;top:-8px;border-top:1px solid #dfe3eb}
 
 /* সংগ্রহের ভেতরের ফাইল-কার্ডে গণনা */
 a[href*="/entries/"]::after{display:block;margin-top:6px;font-size:13px;color:#7b8594;font-weight:400}
+/* গ্রিড ভিউতে কার্ডের ভেতরের লেখার সঙ্গে মিলিয়ে */
+a[class*="GridCard"][href*="/entries/"]::after{padding:0 22px 16px}
 
 /* ---------------- লেখা বাছাই ---------------- */
 .ab{background:#fafbfc;border:1px solid #dfe3eb;border-radius:6px;overflow:hidden}

@@ -53,11 +53,42 @@ const matchesAuthor = (a, sel) => {
 const REQUIRED = ['site','categories','authors','issues','articles','media'];
 const OPTIONAL = ['about','quotes','ads','outlets','feedback'];
 
+/* কনটেন্ট সরাসরি গিটহাব থেকে পড়া হয়।
+   ফলে প্যানেলে লেখা সংরক্ষণের কয়েক মিনিটের মধ্যেই সাইটে চলে আসে —
+   নতুন ডিপ্লয় লাগে না, নেটলিফাইয়ের ক্রেডিটও খরচ হয় না।
+   গিটহাবে কোনো সমস্যা হলে আগের মতো সাইটের নিজের কপি থেকে পড়া হয়। */
+const GH_RAW = 'https://raw.githubusercontent.com/addawahmagazine/Ad-Dawah/main/';
+let GH_OK = true;   // একবার ব্যর্থ হলে এই ভিজিটে আর গিটহাবে চেষ্টা নয়
+
 async function getJSON(name, bust){
+  const minute = Math.floor(Date.now() / 60000);   // এক মিনিটের মধ্যে সব পাঠক একই কপি পান
+  // গিটহাব ধীর বা বন্ধ থাকলে সাড়ে ৩ সেকেন্ড পর সাইটের নিজের কপিতে চলে যাবে — পাতা আটকে থাকবে না
+  if (GH_OK){
+    const ctl = 'AbortController' in window ? new AbortController() : null;
+    const timer = ctl ? setTimeout(() => ctl.abort(), 3500) : 0;
+    try {
+      const gh = await fetch(`${GH_RAW}content/${name}.json?m=${minute}`, ctl ? { signal: ctl.signal } : {});
+      if (gh.ok) return await gh.json();
+      GH_OK = false;
+    } catch (e) { GH_OK = false; /* নিচের বিকল্পে যাবে */ }
+    finally { clearTimeout(timer); }
+  }
   const res = await fetch(`content/${name}.json${bust}`, { cache:'no-store' });
   if (!res.ok) throw new Error(`content/${name}.json — ${res.status}`);
   return res.json();
 }
+
+/* নতুন আপলোড করা ছবি পরের ডিপ্লয়ের আগে সাইটে থাকে না —
+   তখন ছবিটি গিটহাব থেকে দেখানো হয়। */
+document.addEventListener('error', e => {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement) || img.dataset.gh) return;
+  let u;
+  try { u = new URL(img.getAttribute('src') || '', location.href); } catch (err) { return; }
+  if (u.origin !== location.origin || !u.pathname.startsWith('/uploads/')) return;
+  img.dataset.gh = '1';
+  img.src = GH_RAW + decodeURI(u.pathname).slice(1);
+}, true);
 
 async function loadContent(){
   const bust = `?v=${Date.now()}`;
@@ -424,11 +455,44 @@ function sortArticles(list){
   return out;
 }
 
+/* লেখার তালিকা: শুরুতে কয়েকটি, বাকিগুলো "আরো লেখা দেখুন" চাপলে */
+const ART_PAGE = () => (matchMedia('(max-width: 760px)').matches ? 6 : 9);
+let artShown = 0;            // ০ = শুরুর সংখ্যা
+let artKey = '';             // ছাঁকনি বদলালে আবার শুরু থেকে
+
 function renderArticles(){
   const list = sortArticles(ARTICLES.filter(matches));
-  $('#articleGrid').innerHTML = list.map(articleCard).join('');
+  const key = [state.cat, state.issue, state.author, state.q, state.sort].join('|');
+  if (key !== artKey){ artKey = key; artShown = 0; }
+  const limit = artShown || ART_PAGE();
+  const shown = list.slice(0, limit);
+  $('#articleGrid').innerHTML = shown.map(articleCard).join('');
   $('#articleEmpty').hidden = list.length > 0;
+
+  const more = $('#articleMore');
+  if (!more) return;
+  const rest = list.length - shown.length;
+  more.hidden = list.length <= ART_PAGE();
+  $('#articleCount').textContent = `${bn(list.length)}টি লেখার মধ্যে ${bn(shown.length)}টি দেখানো হচ্ছে`;
+  const btn = $('#articleMoreBtn');
+  btn.hidden = rest <= 0;
+  btn.textContent = rest > ART_PAGE() ? `আরো লেখা দেখুন (বাকি ${bn(rest)}টি)` : `বাকি ${bn(rest)}টি লেখা দেখুন`;
+  $('#articleLessBtn').hidden = rest > 0 || list.length <= ART_PAGE();
 }
+
+document.addEventListener('click', e => {
+  if (e.target.closest('#articleMoreBtn')){
+    const before = $('#articleGrid').children.length;
+    artShown = before + ART_PAGE();
+    renderArticles();
+    // নতুন আসা প্রথম লেখায় ফোকাস — কিবোর্ড ও স্ক্রিনরিডারের জন্য
+    $('#articleGrid').children[before]?.querySelector('a,button')?.focus({ preventScroll: true });
+  } else if (e.target.closest('#articleLessBtn')){
+    artShown = 0;
+    renderArticles();
+    $('#articles').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+});
 
 function renderFilters(){
   $('#catChips').innerHTML =
