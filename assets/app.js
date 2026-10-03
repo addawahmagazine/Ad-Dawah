@@ -666,6 +666,147 @@ function renderInfoList(list, key, label, emptyMsg){
   }).join('');
 }
 
+/* ---------- অডিও ও ভিডিও ---------- */
+// ধরন: CMS-এর "ধরন" ঘর → না থাকলে "ধরন ও উৎস"-এর শুরুর শব্দ → না থাকলে লিংক দেখে
+function mediaType(m){
+  const t = String(m.type || '').trim().toLowerCase();
+  if (t === 'video' || t === 'ভিডিও') return 'video';
+  if (t === 'audio' || t === 'অডিও') return 'audio';
+  const meta = String(m.meta || '').trim();
+  if (/^ভিডিও/.test(meta)) return 'video';
+  if (/^অডিও/.test(meta)) return 'audio';
+  const l = String(m.link || '').toLowerCase();
+  if (/youtube\.com|youtu\.be|vimeo\.com|facebook\.com\/.*\/videos|fb\.watch|\.(mp4|webm|mov)(\?|$)/.test(l)) return 'video';
+  if (/soundcloud\.com|\.(mp3|m4a|wav|ogg|aac)(\?|$)/.test(l)) return 'audio';
+  return '';
+}
+// "ভিডিও • সম্পাদকীয় বৈঠক" → "সম্পাদকীয় বৈঠক" (ধরন তো ব্যাজেই দেখাচ্ছে)
+function mediaMeta(m){
+  return String(m.meta || '').replace(/^\s*(ভিডিও|অডিও)\s*[•·|\-–—:]?\s*/, '').trim();
+}
+const MEDIA_IC = {
+  video: '<svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg>',
+  audio: '<svg viewBox="0 0 24 24" class="ic-line"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="7" rx="1.6"/><rect x="16.5" y="14" width="4.5" height="7" rx="1.6"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg>'
+};
+const MEDIA_TAG = {
+  video: '<span class="mtag mtag--video"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/></svg>ভিডিও</span>',
+  audio: '<span class="mtag mtag--audio"><svg viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="2.4"/><rect x="3" y="14" width="4.5" height="7" rx="1.6"/><rect x="16.5" y="14" width="4.5" height="7" rx="1.6"/></svg>অডিও</span>'
+};
+let MEDIA_FILTER = 'all';
+
+function renderMedia(){
+  const list = $('#mediaList'), tabs = $('#mediaTabs');
+  if (!MEDIA.length){
+    list.innerHTML = '<li class="media__empty">এই অংশে এখনো কোনো অডিও বা ভিডিও যুক্ত হয়নি। শিগগিরই যোগ করা হবে, ইনশাআল্লাহ।</li>';
+    if (tabs) tabs.hidden = true;
+    return;
+  }
+  const items = MEDIA.map(m => ({ m, type: mediaType(m) }));
+  const nV = items.filter(x => x.type === 'video').length, nA = items.filter(x => x.type === 'audio').length;
+  if (tabs){
+    tabs.hidden = !(nV && nA);               // দুই ধরনই থাকলে তবেই ছাঁকনি দেখাবে
+    if (tabs.hidden) MEDIA_FILTER = 'all';
+    tabs.innerHTML = [['all','সব',items.length],['video','ভিডিও',nV],['audio','অডিও',nA]].map(([k,t,n]) =>
+      `<button type="button" class="mtab${MEDIA_FILTER === k ? ' is-on' : ''}" data-mfilter="${k}" aria-pressed="${MEDIA_FILTER === k}">${t} <span>${bn(n)}</span></button>`).join('');
+  }
+  list.innerHTML = items.map(({ m, type }) => {
+    const demo = isDemo(m);
+    const icon = MEDIA_IC[type] || MEDIA_IC.play;
+    const verb = type === 'video' ? 'ভিডিও দেখুন' : type === 'audio' ? 'অডিও শুনুন' : 'চালান';
+    const cls = `mitem__play${type ? ' mitem__play--' + type : ''}`;
+    const play = demo
+      ? `<button class="${cls}" data-demo aria-label="${verb} (নমুনা)">${icon}</button>`
+      : m.link
+        ? `<a class="${cls}" href="${esc(m.link)}" target="_blank" rel="noopener" aria-label="${verb}">${icon}</a>`
+        : `<button class="${cls}" aria-label="${verb}">${icon}</button>`;
+    const meta = mediaMeta(m);
+    const hide = MEDIA_FILTER !== 'all' && MEDIA_FILTER !== type;
+    return `<li class="mitem${type ? ' mitem--' + type : ''}${demo ? ' mitem--demo' : ''}" data-mtype="${type}"${hide ? ' hidden' : ''}>${play}
+      <div><p class="mitem__t">${esc(m.title)}${demo ? '<span class="demo-tag">নমুনা</span>' : ''}</p>
+        <p class="mitem__m">${MEDIA_TAG[type] || ''}${meta ? `<span>${esc(meta)}</span>` : ''}</p></div>
+      ${m.length ? `<span class="mitem__len">${esc(m.length)}</span>` : ''}
+    </li>`;
+  }).join('');
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-mfilter]');
+  if (!b) return;
+  MEDIA_FILTER = b.dataset.mfilter;
+  renderMedia();
+});
+
+/* ---------- প্রশ্নোত্তর: নিয়মিত (লেখার ভেতরের প্রশ্নোত্তর ব্লক) ও ওয়েবসাইটে পাঠানো ---------- */
+let QA_TAB = 'regular';
+function regularQs(){
+  const out = [];
+  ARTICLES.forEach(a => {
+    let n = 0;
+    (a.body || []).forEach(b => { if (b.type === 'qa') out.push({ a, n: ++n, q: b.question || '', ans: b.answer || '' }); });
+  });
+  return out;
+}
+const qMatch = (txt, term) => !term || String(txt).toLowerCase().includes(term);
+
+function renderQaHub(){
+  const term = ($('#qSearch')?.value || '').trim().toLowerCase();
+  const reg = regularQs();
+  // সাইট থেকে উত্তর দেওয়া প্রশ্ন (নতুন আগে) + প্যানেলে হাতে যোগ করা প্রশ্নোত্তর
+  const web = [...(window.AD?.publicAnswers || []).map(x => ({ q: x.question, a: x.answer, topic: x.topic, date: x.answered_at })),
+               ...QA_RECENT];
+  $('#qCountRegular').textContent = reg.length ? bn(reg.length) : '';
+  $('#qCountWeb').textContent = web.length ? bn(web.length) : '';
+
+  // নিয়মিত — সংখ্যা ধরে, নতুন সংখ্যা আগে
+  const order = ISSUES.map(i => i.id);
+  const groups = {};
+  reg.filter(x => qMatch(x.q + ' ' + x.ans, term)).forEach(x => {
+    const key = isWeb(x.a) ? '__web' : x.a.issue;
+    (groups[key] = groups[key] || []).push(x);
+  });
+  const keys = Object.keys(groups).sort((p, q) => (order.indexOf(q) - order.indexOf(p)));
+  $('#qListRegular').innerHTML = keys.length ? keys.map(k => {
+    const i = issueById(k);
+    const head = k === '__web' ? 'শুধু ওয়েবসাইটে প্রকাশিত' : `${esc(i?.label || k)}${i?.greg ? ` ॥ ${esc(i.greg)}` : ''}`;
+    return `<div class="qgroup"><h3 class="qgroup__h">${head}</h3><ol class="qlist">${groups[k].map(x =>
+      `<li><button type="button" class="qrow" data-openq="${esc(x.a.id)}" data-qn="${x.n}">
+        <span class="qrow__n">প্রশ্ন-${bn(x.n)}</span><span class="qrow__t">${esc(x.q)}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></li>`).join('')}</ol></div>`;
+  }).join('') : `<p class="qhub__empty">${term ? 'এই শব্দে কোনো প্রশ্ন পাওয়া যায়নি।' : 'এখনো কোনো নিয়মিত প্রশ্নোত্তর যুক্ত হয়নি। শিগগিরই যোগ করা হবে, ইনশাআল্লাহ।'}</p>`;
+
+  // ওয়েবসাইটে পাঠানো — খোলা-বন্ধ করা যায় এমন তালিকা
+  const w = web.map((x, k) => ({ x, k })).filter(o => qMatch(o.x.q + ' ' + o.x.a, term));
+  $('#qListWeb').innerHTML = w.length ? `<div class="qacc">${w.map(({ x, k }) =>
+    `<details class="qacc__it"${term && w.length <= 3 ? ' open' : ''}>
+      <summary><span class="qrow__n">প্রশ্ন</span><span class="qrow__t">${esc(x.q)}${x.topic || x.date ? `<small class="qrow__meta">${[x.topic, x.date ? bnDate(x.date) : ''].filter(Boolean).map(esc).join(' • ')}</small>` : ''}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="qacc__a"><span class="qna__lbl">উত্তর</span>${parasHTML(x.a)}</div>
+    </details>`).join('')}</div>`
+    : `<p class="qhub__empty">${term ? 'এই শব্দে কোনো প্রশ্ন পাওয়া যায়নি।' : 'এখনো কোনো উত্তর প্রকাশিত হয়নি।'}</p>`;
+}
+
+function setTab(group, key){
+  const pre = group === 'q' ? 'q' : 's';
+  document.querySelectorAll(`#${group === 'q' ? 'qa' : 'submit'} .stab`).forEach(b => {
+    const on = b.dataset[pre === 'q' ? 'qtab' : 'stab'] === key;
+    b.classList.toggle('is-on', on); b.setAttribute('aria-selected', on);
+  });
+  document.querySelectorAll(`#${group === 'q' ? 'qa' : 'submit'} [role="tabpanel"]`).forEach(p => {
+    p.hidden = p.id !== `${pre}panel-${key}`;
+  });
+  if (group === 'q') QA_TAB = key;
+}
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-openq]');
+  if (o){ openArticle(o.dataset.openq, +o.dataset.qn); return; }
+  const q = e.target.closest('[data-qtab]');
+  if (q) setTab('q', q.dataset.qtab);          // লিংক হলে ব্রাউজার নিজেই #qa-তে নিয়ে যাবে
+  const s = e.target.closest('[data-stab]');
+  if (s) setTab('s', s.dataset.stab);
+});
+document.addEventListener('input', e => { if (e.target.id === 'qSearch') renderQaHub(); });
+
 function renderMediaEtc(){
   $('#infoGrid').innerHTML = renderInfoList(INFOGRAPHICS, 'card', 'দাওয়াহ কার্ড',
     'এই অংশে এখনো কোনো দাওয়াহ কার্ড যুক্ত হয়নি। শিগগিরই যোগ করা হবে, ইনশাআল্লাহ।');
@@ -675,24 +816,9 @@ function renderMediaEtc(){
   setDemoNote('#graphDemoNote', INFOGRAPHS, 'ইনফোগ্রাফিক');
   setDemoNote('#mediaDemoNote', MEDIA, 'অডিও ও ভিডিও');
 
-  $('#mediaList').innerHTML = !MEDIA.length
-    ? '<li class="media__empty">এই অংশে এখনো কোনো অডিও বা ভিডিও যুক্ত হয়নি। শিগগিরই যোগ করা হবে, ইনশাআল্লাহ।</li>'
-    : MEDIA.map(m => {
-    const demo = isDemo(m);
-    const icon = '<svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg>';
-    const play = demo
-      ? `<button class="mitem__play" data-demo aria-label="চালান (নমুনা)">${icon}</button>`
-      : m.link
-        ? `<a class="mitem__play" href="${esc(m.link)}" target="_blank" rel="noopener" aria-label="চালান">${icon}</a>`
-        : `<button class="mitem__play" aria-label="চালান">${icon}</button>`;
-    return `<li class="mitem${demo ? ' mitem--demo' : ''}">${play}
-      <div><p class="mitem__t">${esc(m.title)}${demo ? '<span class="demo-tag">নমুনা</span>' : ''}</p>${m.meta ? `<p class="mitem__m">${esc(m.meta)}</p>` : ''}</div>
-      ${m.length ? `<span class="mitem__len">${esc(m.length)}</span>` : ''}
-    </li>`;
-  }).join('');
+  renderMedia();
 
-  $('#qaRecent').innerHTML = QA_RECENT.map(x =>
-    `<div class="qaitem"><p class="q">${esc(x.q)}</p><p class="a">${esc(x.a)}</p></div>`).join('');
+  renderQaHub();
 
   $('#donateCards').innerHTML = PAYMENTS.map(p => `
     <div class="dcard">
@@ -855,8 +981,30 @@ function blockAttrs(b, ar){
 const parasHTML = (text, b = {}) =>
   segments(text).map(sg => `<p${blockAttrs(b, sg.ar)}>${rich(sg.text)}</p>`).join('');
 
+/* প্রশ্নোত্তর ব্লকের সূচি — দুই বা ততোধিক প্রশ্ন থাকলে প্রথম প্রশ্নের আগে বসে */
+function qaTocHTML(qs){
+  if (qs.length < 2) return '';
+  return `<nav class="qna-toc" id="qna-toc" aria-label="এই লেখার প্রশ্নসমূহ">
+      <p class="qna-toc__h">এই লেখায় ${bn(qs.length)}টি প্রশ্ন</p>
+      <ol>${qs.map((b, k) => `<li><button type="button" data-qjump="${k + 1}"><span>${bn(k + 1)}.</span>${esc(b.question || '')}</button></li>`).join('')}</ol>
+    </nav>`;
+}
+
 function bodyHTML(blocks){
+  const qs = (blocks || []).filter(b => b.type === 'qa');
+  let qn = 0;
   return (blocks || []).map(b => {
+    if (b.type === 'qa'){
+      qn++;
+      return `${qn === 1 ? qaTocHTML(qs) : ''}<section class="qna" id="q-${qn}">
+        <div class="qna__q"><span class="qna__num">প্রশ্ন-${bn(qn)}</span><h3 class="qna__qt">${esc(b.question || '')}</h3></div>
+        <div class="qna__a"><span class="qna__lbl">উত্তর</span>${parasHTML(b.answer || '')}</div>
+        <div class="qna__foot">
+          <button type="button" class="qna__share" data-qshare="${qn}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a3 3 0 1 0-2.8-4M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm12 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>এই প্রশ্নটি শেয়ার করুন</button>
+          ${qs.length > 1 ? `<button type="button" class="qna__up" data-qjump="0">↑ প্রশ্নের তালিকা</button>` : ''}
+        </div>
+      </section>`;
+    }
     if (b.type === 'heading') return `<h3${blockAttrs(b, isArabic(b.text))}>${esc(b.text)}</h3>`;
     if (b.type === 'quote'){
       const segs = segments(b.text);
@@ -872,7 +1020,7 @@ function bodyHTML(blocks){
   }).join('');
 }
 
-function openArticle(id){
+function openArticle(id, q){
   const a = ARTICLES.find(x => x.id === id); if (!a) return;
   const c = catById(a.cat), i = issueOf(a);
   const d = bnDate(a.date);
@@ -899,9 +1047,40 @@ function openArticle(id){
       <button class="sbtn" data-share="telegram" data-id="${a.id}">${shareIcon('telegram')} টেলিগ্রাম</button>
       <button class="sbtn" data-share="copy" data-id="${a.id}">${shareIcon('copy')} লিংক কপি</button>
     </div>`);
-  history.replaceState(null, '', `#/lekha/${a.id}`);
+  history.replaceState(null, '', `#/lekha/${a.id}${q ? '/q' + q : ''}`);
   window.AD?.bumpView?.(a.id);
+  if (q) setTimeout(() => jumpToQ(q, true), 120);   // শেয়ার করা প্রশ্নের লিংকে এলে সরাসরি সেই প্রশ্নে
 }
+
+/* লেখার ভেতরে নির্দিষ্ট প্রশ্নে যাওয়া (০ = প্রশ্নের তালিকা) */
+function jumpToQ(n, flash){
+  const box = $('#modal .modal__box');
+  const el = n ? document.getElementById('q-' + n) : document.getElementById('qna-toc');
+  if (!box || !el) return;
+  const top = el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 16;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  box.scrollTo({ top, behavior: still ? 'auto' : 'smooth' });
+  if (n && flash){ el.classList.add('qna--flash'); setTimeout(() => el.classList.remove('qna--flash'), 2200); }
+  const id = (location.hash.match(/^#\/lekha\/([^/]+)/) || [])[1];
+  if (id) history.replaceState(null, '', `#/lekha/${id}${n ? '/q' + n : ''}`);
+}
+
+/* একটি প্রশ্নের আলাদা লিংক শেয়ার */
+function shareQ(n){
+  const id = (location.hash.match(/^#\/lekha\/([^/]+)/) || [])[1];
+  const a = ARTICLES.find(x => x.id === id); if (!a) return;
+  const qb = (a.body || []).filter(b => b.type === 'qa')[n - 1]; if (!qb) return;
+  const url = `${location.origin}${location.pathname}#/lekha/${a.id}/q${n}`;
+  const title = `প্রশ্ন: ${qb.question}`;
+  if (navigator.share){ navigator.share({ title, text: title, url }).catch(() => {}); return; }
+  navigator.clipboard?.writeText(url).then(() => toast('এই প্রশ্নের লিংক কপি হয়েছে')).catch(() => toast('লিংক: ' + url));
+}
+document.addEventListener('click', e => {
+  const j = e.target.closest('[data-qjump]');
+  if (j){ e.preventDefault(); jumpToQ(+j.dataset.qjump, true); return; }
+  const s = e.target.closest('[data-qshare]');
+  if (s){ e.preventDefault(); shareQ(+s.dataset.qshare); }
+});
 
 const BOOKMARK_ON  = 'M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z';
 const BOOKMARK_OFF = 'M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1zm1 2v14.3l5-2.9 5 2.9V5H7z';
@@ -1127,6 +1306,7 @@ async function openAccount(){
       <div id="acctQs"><p class="acct__empty">লোড হচ্ছে…</p></div>
 
       <div id="acctAdmin"></div>
+      <div id="acctAnswer"></div>
       <button class="btn btn--line" id="signOutBtn">লগআউট</button>
     </div>`);
 
@@ -1139,7 +1319,7 @@ async function openAccount(){
     : '<p class="acct__empty">এখনও কোনো লেখা সংরক্ষণ করেননি। যেকোনো লেখা খুলে “সংরক্ষণ করুন” চাপলেই এখানে জমা হবে।</p>';
 
   renderMyBuys();
-  if (AD.isAdmin) renderAdminBox();
+  if (AD.isAdmin){ renderAdminBox(); renderAnswerBox('open'); }
 
   try{
     const qs = await AD.myQuestions();
@@ -1203,6 +1383,57 @@ async function renderAdminBox(){
     box.innerHTML = '<h3 class="acct__h">অপেক্ষমাণ অর্ডার</h3><p class="acct__empty">তালিকাটি আনা গেল না।</p>';
   }
 }
+
+/* ---- প্রশাসক: পাঠকের প্রশ্নের উত্তর দেওয়া ও প্রকাশ ---- */
+let ANSWER_ROWS = [];
+async function renderAnswerBox(mode){
+  const box = $('#acctAnswer'); if (!box) return;
+  const tabs = `<div class="stabs stabs--sm">
+      <button type="button" class="stab${mode === 'open' ? ' is-on' : ''}" data-anstab="open">উত্তরের অপেক্ষায়</button>
+      <button type="button" class="stab${mode === 'done' ? ' is-on' : ''}" data-anstab="done">উত্তর দেওয়া হয়েছে</button>
+    </div>`;
+  box.innerHTML = `<h3 class="acct__h">পাঠকের প্রশ্ন (প্রশাসক)</h3>${tabs}<p class="acct__empty">লোড হচ্ছে…</p>`;
+  try{
+    ANSWER_ROWS = await AD.adminQuestions(mode);
+    box.innerHTML = `<h3 class="acct__h">পাঠকের প্রশ্ন (প্রশাসক)${mode === 'open' && ANSWER_ROWS.length ? ` (${bn(ANSWER_ROWS.length)})` : ''}</h3>${tabs}` + (
+      ANSWER_ROWS.length ? ANSWER_ROWS.map(q => `
+        <form class="ansrow" data-ans="${q.id}">
+          <p class="ansrow__meta">${[q.topic, q.name || 'নাম দেননি', q.email, bnDate(q.created_at)].filter(Boolean).map(esc).join(' • ')}</p>
+          <p class="ansrow__q">${esc(q.body)}</p>
+          <label class="fld"><span>প্রকাশের জন্য প্রশ্ন <em>(ঐচ্ছিক — ভাষা গুছাতে বা ব্যক্তিগত তথ্য বাদ দিতে)</em></span>
+            <textarea name="public_question" rows="2" placeholder="ফাঁকা রাখলে ওপরের প্রশ্নটিই দেখাবে">${esc(q.public_question || '')}</textarea></label>
+          <label class="fld"><span>উত্তর</span>
+            <textarea name="answer" rows="6" placeholder="অনুচ্ছেদ আলাদা করতে মাঝে একটি ফাঁকা লাইন দিন">${esc(q.answer || '')}</textarea></label>
+          <label class="ansrow__pub"><input type="checkbox" name="published"${q.published ? ' checked' : ''}><span>ওয়েবসাইটে প্রকাশ করুন <em>(না দিলে শুধু প্রশ্নকারী নিজের অ্যাকাউন্টে দেখবেন)</em></span></label>
+          <div class="ansrow__end">
+            <button class="btn btn--green" type="submit">${q.answered ? 'হালনাগাদ করুন' : 'উত্তর সংরক্ষণ'}</button>
+            ${q.email ? `<a class="btn btn--line" href="mailto:${esc(q.email)}?subject=${encodeURIComponent('আদ দাওয়াহ — আপনার প্রশ্নের উত্তর')}">ইমেইলে জানান</a>` : ''}
+          </div>
+        </form>`).join('')
+      : `<p class="acct__empty">${mode === 'open' ? 'উত্তরের অপেক্ষায় কোনো প্রশ্ন নেই।' : 'এখনো কোনো উত্তর দেওয়া হয়নি।'}</p>`);
+  }catch(err){
+    console.error(err);
+    box.innerHTML = `<h3 class="acct__h">পাঠকের প্রশ্ন (প্রশাসক)</h3>${tabs}<p class="acct__empty">তালিকাটি আনা গেল না। Supabase-এ schema-5.sql চালানো হয়েছে কি?</p>`;
+  }
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-anstab]');
+  if (t) renderAnswerBox(t.dataset.anstab);
+});
+document.addEventListener('submit', async e => {
+  const f = e.target.closest('form[data-ans]'); if (!f) return;
+  e.preventDefault();
+  const d = new FormData(f), btn = f.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try{
+    await AD.answerQuestion(f.dataset.ans, { answer: d.get('answer'), public_question: d.get('public_question'), published: d.get('published') === 'on' });
+    toast(d.get('answer')?.trim() ? (d.get('published') === 'on' ? 'উত্তর সংরক্ষিত ও প্রকাশিত হয়েছে' : 'উত্তর সংরক্ষিত হয়েছে') : 'উত্তর মুছে ফেলা হয়েছে');
+    const mode = $('#acctAnswer [data-anstab].is-on')?.dataset.anstab || 'open';
+    renderAnswerBox(mode);
+  }catch(err){
+    console.error(err); toast('সংরক্ষণ করা গেল না'); btn.disabled = false;
+  }
+});
 
 function renderAccountUI(){
   const btn = $('#accountBtn');
@@ -1654,11 +1885,11 @@ async function init(){
     renderAll();
     if (window.AD){
       await AD.ready;
-      AD.onChange(() => { renderAccountUI(); renderVisitStats(); renderArticles(); });
+      AD.onChange(() => { renderAccountUI(); renderVisitStats(); renderArticles(); renderQaHub(); });
     }
 
-    const m = location.hash.match(/^#\/lekha\/(.+)$/);
-    if (m) openArticle(m[1]);
+    const m = location.hash.match(/^#\/lekha\/([^/]+)(?:\/q(\d+))?$/);
+    if (m) openArticle(m[1], m[2] ? +m[2] : 0);
     else setTimeout(showQuote, 700);
   }catch(err){
     console.error(err);

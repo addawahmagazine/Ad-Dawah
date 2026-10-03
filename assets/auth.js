@@ -41,7 +41,7 @@ AD.ready = (async () => {
       emit();
     });
 
-    await Promise.all([loadBookmarks(), loadStats(), loadAccountExtras()]);
+    await Promise.all([loadBookmarks(), loadStats(), loadAccountExtras(), AD.loadPublicAnswers()]);
     recordVisit();
     trackOnline();
   } catch (err) {
@@ -142,6 +142,43 @@ AD.myQuestions = async () => {
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
+};
+
+/* প্রকাশিত উত্তর — সবার জন্য (নাম-ইমেইল ছাড়া) */
+AD.publicAnswers = [];
+AD.loadPublicAnswers = async () => {
+  if (!AD.client) return [];
+  const { data, error } = await AD.client.rpc('published_answers');
+  if (error){ console.warn('published_answers:', error.message); return AD.publicAnswers; }
+  AD.publicAnswers = data || [];
+  return AD.publicAnswers;
+};
+
+/* প্রশাসকের জন্য: প্রশ্নের তালিকা ও উত্তর দেওয়া */
+AD.adminQuestions = async (mode = 'open') => {
+  if (!AD.isAdmin) return [];
+  let q = AD.client.from('questions')
+    .select('id, name, email, topic, body, answer, answered, published, public_question, created_at, answered_at')
+    .order('created_at', { ascending: mode === 'open' });
+  if (mode === 'open') q = q.eq('answered', false);
+  else q = q.eq('answered', true);
+  const { data, error } = await q.limit(200);
+  if (error) throw error;
+  return data || [];
+};
+
+AD.answerQuestion = async (id, { answer, public_question, published }) => {
+  if (!AD.isAdmin) throw new Error('অনুমতি নেই');
+  const has = !!(answer && answer.trim());
+  const { error } = await AD.client.from('questions').update({
+    answer: has ? answer.trim() : null,
+    public_question: public_question && public_question.trim() ? public_question.trim() : null,
+    answered: has,
+    published: has && !!published,
+    answered_at: has ? new Date().toISOString() : null
+  }).eq('id', id);
+  if (error) throw error;
+  await AD.loadPublicAnswers(); emit();
 };
 
 /* --------------------------------------------------------- পঠিত সংখ্যা */

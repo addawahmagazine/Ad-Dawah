@@ -211,8 +211,16 @@
           </ul>
         </li>
         <li><a href="#audiovideo" class="nav__link">অডিও ও ভিডিও</a></li>
-        <li><a href="#qa" class="nav__link">আপনার জিজ্ঞাসা</a></li>
-        <li><a href="#submit" class="nav__link">লেখা পাঠান</a></li>
+        <li class="nav__has-sub">
+          <button class="nav__link nav__subtoggle" aria-expanded="false" data-sub="navQa" data-spy="qa">প্রশ্নোত্তর
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <ul class="nav__sub" id="navQa">
+            <li><a href="#qa" data-qtab="regular">নিয়মিত প্রশ্নোত্তর</a></li>
+            <li><a href="#qa" data-qtab="web">ওয়েবসাইটে পাঠানো প্রশ্নের উত্তর</a></li>
+          </ul>
+        </li>
+        <li><a href="#submit" class="nav__link">লেখা/প্রশ্ন পাঠান</a></li>
         <li><a href="#about" class="nav__link">আমাদের সম্পর্কে</a></li>
         <li><a href="#feedback" class="nav__link">পাঠকের অনুভূতি</a></li>
         <li><a href="#outlets" class="nav__link">এজেন্ট ও মাকতাবা</a></li>
@@ -389,78 +397,115 @@
       <p class="sechead__p">আলোচনা, পাঠচক্র ও প্রশ্নোত্তর পর্ব — শুনুন ও দেখুন।</p>
     </header>
     <p class="demo-note" id="mediaDemoNote" hidden></p>
+    <div class="mtabs" id="mediaTabs" role="group" aria-label="ধরন অনুযায়ী দেখুন" hidden></div>
     <ul class="media__list" id="mediaList"></ul>
   </div>
 </section>
 
 <!-- ===== Q&A ===== -->
 <section class="section" id="qa">
-  <div class="wrap qa">
-    <div class="qa__intro">
-      <h2 class="sechead__h">আপনার জিজ্ঞাসা</h2>
-      <p id="qaIntroText"></p>
-      <ul class="qa__points" id="qaPointsList"></ul>
-      <div class="qa__recent" id="qaRecent"></div>
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__h">প্রশ্নোত্তর</h2>
+      <p class="sechead__p">পত্রিকার নিয়মিত প্রশ্নোত্তর বিভাগ আর ওয়েবসাইটে পাঠানো প্রশ্নের উত্তর — এক জায়গায়।</p>
+    </header>
+    <div class="stabs" role="tablist" aria-label="প্রশ্নোত্তরের ধরন">
+      <button type="button" class="stab is-on" role="tab" id="qtab-regular" aria-controls="qpanel-regular" aria-selected="true" data-qtab="regular">নিয়মিত প্রশ্নোত্তর <span class="stab__n" id="qCountRegular"></span></button>
+      <button type="button" class="stab" role="tab" id="qtab-web" aria-controls="qpanel-web" aria-selected="false" data-qtab="web">ওয়েবসাইটে পাঠানো প্রশ্নের উত্তর <span class="stab__n" id="qCountWeb"></span></button>
     </div>
-
-    <form class="form" id="qaForm" name="jiggasha" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-      <input type="hidden" name="form-name" value="jiggasha">
-      <p hidden><label>এটি খালি রাখুন <input name="bot-field"></label></p>
-      <label class="fld"><span>আপনার নাম <em>(ঐচ্ছিক)</em></span>
-        <input type="text" name="nam" placeholder="যেমন: আব্দুর রহমান">
+    <div class="qhub__bar">
+      <label class="qhub__search"><span class="sr-only">প্রশ্ন খুঁজুন</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="qSearch" placeholder="প্রশ্ন খুঁজুন… যেমন: মূর্তিপূজা" autocomplete="off">
       </label>
-      <label class="fld"><span>ইমেইল</span>
-        <input type="email" name="email" required placeholder="you@example.com">
-      </label>
-      <label class="fld"><span>বিষয়</span>
-        <select name="bishoy">
-          <option>আকীদা ও আমল</option>
-          <option>বাতিল ফিরকার জবাব</option>
-          <option>অপপ্রচারের নিরসন</option>
-          <option>ইসলাম সম্পর্কে জানতে চাই</option>
-          <option>অন্যান্য</option>
-        </select>
-      </label>
-      <label class="fld"><span>আপনার প্রশ্ন</span>
-        <textarea name="proshno" rows="6" required placeholder="যতটা সম্ভব বিস্তারিত লিখুন — প্রসঙ্গ জানা থাকলে জবাব নির্ভুল হয়।"></textarea>
-      </label>
-      <button class="btn btn--green btn--lg" type="submit">প্রশ্ন পাঠান</button>
-      <p class="form__note" id="qaNote" role="status"></p>
-    </form>
+      <a class="btn btn--ghost" href="#submit" data-stab="q">আপনার প্রশ্ন পাঠান</a>
+    </div>
+    <div class="qhub__panel" role="tabpanel" id="qpanel-regular" aria-labelledby="qtab-regular">
+      <p class="qhub__lead">প্রতি সংখ্যার “প্রশ্নোত্তর” বিভাগের প্রশ্নগুলো। যেকোনো প্রশ্নে চাপলে পুরো উত্তর খুলবে।</p>
+      <div id="qListRegular"></div>
+    </div>
+    <div class="qhub__panel" role="tabpanel" id="qpanel-web" aria-labelledby="qtab-web" hidden>
+      <p class="qhub__lead">পাঠকেরা ওয়েবসাইটের মাধ্যমে যেসব প্রশ্ন পাঠিয়েছেন, তার মধ্য থেকে বাছাই করা উত্তর।</p>
+      <div id="qListWeb"></div>
+    </div>
   </div>
 </section>
 
-<!-- ===== SUBMIT ARTICLE ===== -->
+<!-- ===== SUBMIT: লেখা/প্রশ্ন পাঠান ===== -->
 <section class="section section--tint" id="submit">
-  <div class="wrap submit">
-    <div class="submit__intro" id="submitRules">
-      <h2 class="sechead__h" id="submitTitle">আমাদের জন্য লিখুন</h2>
-      <p id="submitIntro"></p>
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__h">লেখা/প্রশ্ন পাঠান</h2>
+      <p class="sechead__p">আদ দাওয়াহর জন্য লেখা পাঠান, অথবা দীন সম্পর্কে আপনার প্রশ্ন জানান।</p>
+    </header>
+    <div class="stabs" role="tablist" aria-label="কী পাঠাবেন">
+      <button type="button" class="stab is-on" role="tab" id="stab-lekha" aria-controls="spanel-lekha" aria-selected="true" data-stab="lekha">লেখা পাঠান</button>
+      <button type="button" class="stab" role="tab" id="stab-q" aria-controls="spanel-q" aria-selected="false" data-stab="q">প্রশ্ন পাঠান</button>
     </div>
-    <form class="form" id="lekhaForm" name="lekha" method="POST" data-netlify="true"
-          enctype="multipart/form-data" netlify-honeypot="bot-field">
-      <input type="hidden" name="form-name" value="lekha">
-      <p hidden><label>এটি খালি রাখুন <input name="bot-field"></label></p>
-      <div class="frow">
-        <label class="fld"><span>আপনার নাম</span><input type="text" name="nam" required placeholder="পূর্ণ নাম"></label>
-        <label class="fld"><span>ইমেইল</span><input type="email" name="email" required placeholder="you@example.com"></label>
+
+    <div class="submit" role="tabpanel" id="spanel-lekha" aria-labelledby="stab-lekha">
+      <div class="submit__intro" id="submitRules">
+        <h3 class="submit__h" id="submitTitle">আমাদের জন্য লিখুন</h3>
+        <p id="submitIntro"></p>
       </div>
-      <div class="frow">
-        <label class="fld"><span>মোবাইল</span><input type="text" name="mobile" inputmode="tel" placeholder="01XXXXXXXXX"></label>
-        <label class="fld"><span>কোন বিভাগের জন্য</span>
-          <select name="bibhag" id="submitCatSelect"></select>
+      <form class="form" id="lekhaForm" name="lekha" method="POST" data-netlify="true"
+            enctype="multipart/form-data" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="lekha">
+        <p hidden><label>এটি খালি রাখুন <input name="bot-field"></label></p>
+        <div class="frow">
+          <label class="fld"><span>আপনার নাম</span><input type="text" name="nam" required placeholder="পূর্ণ নাম"></label>
+          <label class="fld"><span>ইমেইল</span><input type="email" name="email" required placeholder="you@example.com"></label>
+        </div>
+        <div class="frow">
+          <label class="fld"><span>মোবাইল</span><input type="text" name="mobile" inputmode="tel" placeholder="01XXXXXXXXX"></label>
+          <label class="fld"><span>কোন বিভাগের জন্য</span>
+            <select name="bibhag" id="submitCatSelect"></select>
+          </label>
+        </div>
+        <label class="fld"><span>লেখার শিরোনাম</span><input type="text" name="shironam" required></label>
+        <label class="fld"><span>সংক্ষিপ্ত পরিচিতি <em>(নিজের সম্পর্কে দুই লাইন)</em></span>
+          <textarea name="porichiti" rows="2"></textarea></label>
+        <label class="fld"><span>লেখাটি এখানে লিখুন বা পেস্ট করুন</span>
+          <textarea name="lekha" rows="8" placeholder="উদ্ধৃতির সূত্র উল্লেখ করতে ভুলবেন না।"></textarea></label>
+        <label class="fld"><span>অথবা ফাইল সংযুক্ত করুন <em>(Word বা PDF)</em></span>
+          <input type="file" name="file" accept=".doc,.docx,.pdf,.txt"></label>
+        <button class="btn btn--green btn--lg" type="submit">লেখা পাঠান</button>
+        <p class="form__note" id="lekhaNote" role="status"></p>
+      </form>
+    </div>
+
+    <div class="submit" role="tabpanel" id="spanel-q" aria-labelledby="stab-q" hidden>
+      <div class="submit__intro qa__intro">
+        <h3 class="submit__h">আপনার জিজ্ঞাসা</h3>
+        <p id="qaIntroText"></p>
+        <ul class="qa__points" id="qaPointsList"></ul>
+        <p class="qhub__hint">বাছাই করা প্রশ্নোত্তর <a href="#qa" data-qtab="web">“ওয়েবসাইটে পাঠানো প্রশ্নের উত্তর”</a>-এ প্রকাশ করা হয়।</p>
+      </div>
+      <form class="form" id="qaForm" name="jiggasha" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="jiggasha">
+        <p hidden><label>এটি খালি রাখুন <input name="bot-field"></label></p>
+        <label class="fld"><span>আপনার নাম <em>(ঐচ্ছিক)</em></span>
+          <input type="text" name="nam" placeholder="যেমন: আব্দুর রহমান">
         </label>
-      </div>
-      <label class="fld"><span>লেখার শিরোনাম</span><input type="text" name="shironam" required></label>
-      <label class="fld"><span>সংক্ষিপ্ত পরিচিতি <em>(নিজের সম্পর্কে দুই লাইন)</em></span>
-        <textarea name="porichiti" rows="2"></textarea></label>
-      <label class="fld"><span>লেখাটি এখানে লিখুন বা পেস্ট করুন</span>
-        <textarea name="lekha" rows="8" placeholder="উদ্ধৃতির সূত্র উল্লেখ করতে ভুলবেন না।"></textarea></label>
-      <label class="fld"><span>অথবা ফাইল সংযুক্ত করুন <em>(Word বা PDF)</em></span>
-        <input type="file" name="file" accept=".doc,.docx,.pdf,.txt"></label>
-      <button class="btn btn--green btn--lg" type="submit">লেখা পাঠান</button>
-      <p class="form__note" id="lekhaNote" role="status"></p>
-    </form>
+        <label class="fld"><span>ইমেইল</span>
+          <input type="email" name="email" required placeholder="you@example.com">
+        </label>
+        <label class="fld"><span>বিষয়</span>
+          <select name="bishoy">
+            <option>আকীদা ও আমল</option>
+            <option>বাতিল ফিরকার জবাব</option>
+            <option>অপপ্রচারের নিরসন</option>
+            <option>ইসলাম সম্পর্কে জানতে চাই</option>
+            <option>অন্যান্য</option>
+          </select>
+        </label>
+        <label class="fld"><span>আপনার প্রশ্ন</span>
+          <textarea name="proshno" rows="6" required placeholder="যতটা সম্ভব বিস্তারিত লিখুন — প্রসঙ্গ জানা থাকলে জবাব নির্ভুল হয়।"></textarea>
+        </label>
+        <button class="btn btn--green btn--lg" type="submit">প্রশ্ন পাঠান</button>
+        <p class="form__note" id="qaNote" role="status"></p>
+      </form>
+    </div>
   </div>
 </section>
 
@@ -581,8 +626,9 @@
       <h3>দ্রুত লিংক</h3>
       <ul class="foot__links">
         <li><a href="#archive">সকল সংখ্যা</a></li>
-        <li><a href="#qa">আপনার জিজ্ঞাসা</a></li>
-        <li><a href="#submit">লেখা পাঠান</a></li>
+        <li><a href="#qa" data-qtab="regular">প্রশ্নোত্তর</a></li>
+        <li><a href="#submit" data-stab="lekha">লেখা পাঠান</a></li>
+        <li><a href="#submit" data-stab="q">প্রশ্ন পাঠান</a></li>
         <li><a href="#submitRules">লেখা পাঠানোর নিয়ম</a></li>
         <li><a href="#outlets">এজেন্ট ও মাকতাবা</a></li>
         <li><a href="#feedback">পাঠকের অনুভূতি</a></li>

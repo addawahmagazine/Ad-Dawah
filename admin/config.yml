@@ -24,19 +24,19 @@ public_folder: "/uploads"
 publish_mode: simple
 
 collections:
-  # ---------------------------------------------------------------- লেখা
+  # ---------------------------------------------------------- ১. লেখাসমূহ
   - name: "articles"
     label: "লেখাসমূহ"
     files:
       - name: "articles"
-        label: "সব লেখা"
+        label: "লেখা খুঁজুন ও সম্পাদনা করুন"
         file: "content/articles.json"
-        description: "নতুন লেখা যোগ করতে নিচে “Add নতুন লেখা” বোতামে চাপুন।"
+        description: "প্রথমে সংখ্যা বা “শুধু ওয়েবসাইটে” বাছুন, তারপর লেখা। ওই তালিকার নিচের বোতামে চাপলে সেখানেই নতুন লেখা যোগ হবে।"
         fields:
           - name: "articles"
             label: "লেখা"
             label_singular: "নতুন লেখা"
-            widget: "list"
+            widget: "article-browser"
             summary: "{{fields.title}}"
             collapsed: true
             fields:
@@ -152,6 +152,14 @@ collections:
                           hint: "প্রতিপক্ষের বক্তব্য যতটা সম্ভব হুবহু লিখুন।" }
                       - { name: "answer", label: "জবাব", widget: "text",
                           hint: "কুরআন, সুন্নাহ ও স্বীকৃত উৎস থেকে দলিলসহ।" }
+                  - name: "qa"
+                    label: "প্রশ্নোত্তর (প্রশ্ন ও উত্তর)"
+                    summary: "প্রশ্ন — {{fields.question}}"
+                    fields:
+                      - { name: "question", label: "প্রশ্ন", widget: "text",
+                          hint: "“প্রশ্ন-১, প্রশ্ন-২” নম্বর সাইট নিজেই বসাবে — এখানে শুধু প্রশ্নটি লিখুন।" }
+                      - { name: "answer", label: "উত্তর", widget: "text",
+                          hint: "অনুচ্ছেদ আলাদা করতে মাঝে একটি ফাঁকা লাইন দিন। আয়াত/হাদীস আলাদা বাক্সে চাইলে এর পরে একটি “উদ্ধৃতি” ব্লক যোগ করুন। সাজসজ্জা: **বোল্ড**  *ইটালিক*" }
                   - name: "quote"
                     label: "উদ্ধৃতি (আয়াত / হাদীস)"
                     summary: "{{fields.text}}"
@@ -166,9 +174,9 @@ collections:
                       - { name: "src", label: "ছবি", widget: "image" }
                       - { name: "caption", label: "ছবির নিচের লেখা", widget: "string", required: false }
 
-  # ------------------------------------------------- সংখ্যা, লেখক, বিভাগ
+  # ---------------------------------------------------------- ২. সংখ্যা, লেখক ও বিভাগ
   - name: "taxonomy"
-    label: "সংখ্যা ও লেখক"
+    label: "সংখ্যা, লেখক ও বিভাগ"
     files:
       - name: "issues"
         label: "সংখ্যাসমূহ"
@@ -254,12 +262,12 @@ collections:
                   default: "M12 3l7 4v5c0 4.4-3 8.3-7 9-4-.7-7-4.6-7-9V7l7-4z",
                   hint: "কারিগরি ঘর — না বুঝলে যা আছে তা-ই থাক।" }
 
-  # ---------------------------------------------- কার্ড, মিডিয়া, প্রশ্নোত্তর
+  # ---------------------------------------------------------- ৩. দাওয়াহ কার্ড ও ইনফোগ্রাফিক্স
   - name: "media"
-    label: "কার্ড ও মিডিয়া"
+    label: "দাওয়াহ কার্ড ও ইনফোগ্রাফিক্স"
     files:
       - name: "media"
-        label: "দাওয়াহ কার্ড, ইনফোগ্রাফিক্স, অডিও-ভিডিও, প্রশ্নোত্তর"
+        label: "দাওয়াহ কার্ড ও ইনফোগ্রাফিক্স"
         file: "content/media.json"
         fields:
           - name: "infographics"
@@ -276,13 +284,8 @@ collections:
               - { name: "sub", required: false, label: "নিচের ছোট লাইন", widget: "string" }
               - name: "article"
                 label: "কোন লেখার সঙ্গে যুক্ত"
-                widget: "relation"
+                widget: "article-picker"
                 required: false
-                collection: "articles"
-                file: "articles"
-                value_field: "articles.*.id"
-                display_fields: ["articles.*.title"]
-                search_fields: ["articles.*.title"]
                 hint: "যুক্ত করলে কার্ডে ক্লিক করলেই ওই লেখাটি খুলবে। ফাঁকা রাখলে কার্ডটি কেবল ছবি হিসেবে থাকবে।"
               - { name: "from", label: "রঙ (উপরে)", widget: "color", default: "#064E3B", required: false }
               - { name: "to", label: "রঙ (নিচে)", widget: "color", default: "#0F5132", required: false }
@@ -302,18 +305,22 @@ collections:
               - { name: "sub", label: "নিচের ছোট লাইন", widget: "string" }
               - name: "article"
                 label: "কোন লেখার সঙ্গে যুক্ত"
-                widget: "relation"
+                widget: "article-picker"
                 required: false
-                collection: "articles"
-                file: "articles"
-                value_field: "articles.*.id"
-                display_fields: ["articles.*.title"]
-                search_fields: ["articles.*.title"]
                 hint: "যুক্ত করলে ক্লিক করলেই ওই লেখাটি খুলবে। ফাঁকা রাখলে এটি কেবল ছবি হিসেবে থাকবে।"
               - { name: "from", label: "রঙ (উপরে)", widget: "color", default: "#064E3B", required: false }
               - { name: "to", label: "রঙ (নিচে)", widget: "color", default: "#0F5132", required: false }
               - { name: "demo", label: "নমুনা (ডেমো)", widget: "boolean", default: false, required: false,
                   hint: "টিক দিলে সাইটে 'নমুনা' হিসেবে দেখাবে — খোলা বা শেয়ার করা যাবে না। আসল কনটেন্টে টিক দেবেন না।" }
+
+  # ---------------------------------------------------------- ৪. ভিডিও ও অডিও
+  - name: "avmedia"
+    label: "ভিডিও ও অডিও"
+    files:
+      - name: "avmedia"
+        label: "ভিডিও ও অডিও"
+        file: "content/media.json"
+        fields:
           - name: "media"
             required: false
             label: "অডিও ও ভিডিও"
@@ -323,24 +330,17 @@ collections:
             collapsed: true
             fields:
               - { name: "title", label: "শিরোনাম", widget: "string" }
-              - { name: "meta", required: false, label: "ধরন ও উৎস", widget: "string", hint: "যেমন: ভিডিও • সম্পাদকীয় বৈঠক" }
+              - { name: "type", label: "ধরন", widget: "select", required: false,
+                  options: [{ label: "ভিডিও", value: "video" }, { label: "অডিও", value: "audio" }],
+                  hint: "সাইটে ভিডিও ও অডিও আলাদা চিহ্ন ও রঙে দেখাবে। খালি রাখলে লিংক দেখে আন্দাজ করা হবে।" }
+              - { name: "meta", required: false, label: "উৎস / অনুষ্ঠান", widget: "string", hint: "যেমন: সম্পাদকীয় বৈঠক (ধরন এখানে লেখার দরকার নেই)" }
               - { name: "length", required: false, label: "সময়", widget: "string", hint: "যেমন: ৪১ মিনিট" }
               - { name: "link", label: "ইউটিউব / অডিও লিংক", widget: "string", required: false,
                   hint: "আপলোড করা ফাইলের জন্য লিখুন /uploads/ফাইলের-নাম.mp3" }
               - { name: "demo", label: "নমুনা (ডেমো)", widget: "boolean", default: false, required: false,
                   hint: "টিক দিলে সাইটে 'নমুনা' হিসেবে দেখাবে — খোলা বা শেয়ার করা যাবে না। আসল কনটেন্টে টিক দেবেন না।" }
-          - name: "qa"
-            required: false
-            label: "নমুনা প্রশ্নোত্তর"
-            label_singular: "নতুন প্রশ্নোত্তর"
-            widget: "list"
-            summary: "{{fields.q}}"
-            collapsed: true
-            fields:
-              - { name: "q", label: "প্রশ্ন", widget: "text" }
-              - { name: "a", label: "সংক্ষিপ্ত জবাব", widget: "text" }
 
-  # --------------------------------------------------------- পাতার লেখা
+  # ---------------------------------------------------------- ৫. পাতার লেখা
   - name: "pages"
     label: "পাতার লেখা"
     files:
@@ -397,6 +397,26 @@ collections:
               - { name: "text", label: "আয়াত / হাদীস / বাণী", widget: "text" }
               - { name: "source", label: "সূত্র", widget: "string" }
 
+      - name: "qa"
+        label: "ওয়েবসাইটে পাঠানো প্রশ্নের উত্তর"
+        file: "content/media.json"
+        description: "পাঠকদের পাঠানো প্রশ্ন থেকে বাছাই করা প্রশ্ন ও উত্তর। সাইটের “প্রশ্নোত্তর → ওয়েবসাইটে পাঠানো প্রশ্নের উত্তর”-এ দেখাবে। অনুচ্ছেদ আলাদা করতে উত্তরে ফাঁকা লাইন দিন।"
+        fields:
+          - name: "qa"
+            required: false
+            label: "প্রশ্নোত্তর"
+            label_singular: "নতুন প্রশ্নোত্তর"
+            widget: "list"
+            summary: "{{fields.q}}"
+            collapsed: true
+            fields:
+              - { name: "q", label: "প্রশ্ন", widget: "text" }
+              - { name: "a", label: "সংক্ষিপ্ত জবাব", widget: "text" }
+
+  # ---------------------------------------------------------- ৬. পাঠকের অনুভূতি
+  - name: "feedback"
+    label: "পাঠকের অনুভূতি"
+    files:
       - name: "feedback"
         label: "পাঠকের অনুভূতি"
         file: "content/feedback.json"
@@ -416,6 +436,10 @@ collections:
                   hint: "যেমন: শিক্ষার্থী — ঢাকা। না দিলেও চলবে।" }
               - { name: "text", label: "যা বলেছেন", widget: "text" }
 
+  # ---------------------------------------------------------- ৭. এজেন্ট ও মাকতাবা
+  - name: "outlets"
+    label: "এজেন্ট ও মাকতাবা"
+    files:
       - name: "outlets"
         label: "এজেন্ট ও মাকতাবা"
         file: "content/outlets.json"
@@ -440,7 +464,7 @@ collections:
               - { name: "district", label: "জেলা", widget: "string", required: false }
               - { name: "thana", label: "থানা / উপজেলা", widget: "string", required: false }
 
-  # ---------------------------------------------------------- বিজ্ঞাপন
+  # ---------------------------------------------------------- ৮. বিজ্ঞাপন
   - name: "ads"
     label: "বিজ্ঞাপন"
     files:
@@ -471,9 +495,9 @@ collections:
                   - { label: "আর্কাইভের আগে", value: "bottom" }
               - { name: "active", label: "চালু", widget: "boolean", default: true, required: false }
 
-  # ------------------------------------------------------------- সেটিংস
+  # ---------------------------------------------------------- ৯. যোগাযোগ ও পেমেন্ট
   - name: "settings"
-    label: "সাইট সেটিংস"
+    label: "যোগাযোগ ও পেমেন্ট"
     files:
       - name: "site"
         label: "যোগাযোগ, মূল্য ও পেমেন্ট"
