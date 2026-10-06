@@ -629,9 +629,12 @@ function renderIssues(){
       : (i.preorder
           ? `<button class="btn btn--line" data-preorder="${i.id}">প্রি-অর্ডার</button>`
           : `<button class="btn btn--line" disabled>${esc(i.tagline || 'প্রস্তুত হচ্ছে')}</button>`);
+    // প্রচ্ছদ ও শিরোনামে চাপলেও পিডিএফ অংশ খুলবে (অপ্রকাশিত সংখ্যায় প্রি-অর্ডার থাকলে সেটি)
+    const act = i.published ? `data-issueopen="${i.id}"` : (i.preorder ? `data-preorder="${i.id}"` : '');
+    const tip = i.published ? `${esc(i.label)} — পিডিএফ` : `${esc(i.label)} — প্রি-অর্ডার`;
     return `<article class="issue">
-      <div class="cover">${coverSVG(i)}</div>
-      <h3 class="issue__h">${esc(i.label)}</h3>
+      ${act ? `<button type="button" class="issue__open" ${act} aria-label="${tip}"><div class="cover">${coverSVG(i)}</div></button>` : `<div class="cover">${coverSVG(i)}</div>`}
+      <h3 class="issue__h">${act ? `<button type="button" class="issue__open issue__open--t" ${act}>${esc(i.label)}</button>` : esc(i.label)}</h3>
       <p class="issue__d">${esc(i.hijri)} ॥ ${esc(i.greg)}${i.published ? ` • ${bn(n)}টি লেখা` : ''}</p>
       <div class="issue__btns">${btns}</div>
     </article>`;
@@ -1807,6 +1810,15 @@ function wireUI(){
       e.preventDefault();
       nav.classList.remove('is-open'); sbar.hidden = true;
       openPdf(np.dataset.navpdf);
+      return;
+    }
+    // সংখ্যার প্রচ্ছদ/শিরোনাম: না কেনা হলে সরাসরি কেনার ফর্ম, বাকি সব ক্ষেত্রে পিডিএফ অংশ
+    const io = e.target.closest('[data-issueopen]');
+    if (io){
+      const iss = issueById(io.dataset.issueopen);
+      const st = (window.AD?.enabled && AD.user) ? AD.issueStatus(iss.id) : null;
+      if (isPaid(iss) && window.AD?.enabled && st !== 'approved' && st !== 'pending') openBuy(iss.id);
+      else openPdf(iss.id);
       return;
     }
     const ip = e.target.closest('[data-issuepdf]');

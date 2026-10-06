@@ -143,14 +143,44 @@
   }
   function decapUser() {
     if (window.__AD_PRESENCE_ME) return window.__AD_PRESENCE_ME;    // শুধু প্রিভিউর জন্য
-    try { var u = JSON.parse(localStorage.getItem('decap-cms-user') || 'null'); return u && (u.login || u.name) ? u : null; } catch (e) { return null; }
+    try { var u = JSON.parse(localStorage.getItem('decap-cms-user') || 'null'); return u && (u.token || u.login || u.name) ? u : null; } catch (e) { return null; }
   }
+  /* পরিচয়: প্রতিটি ব্রাউজারের নিজস্ব আইডি + নিজের দেওয়া নাম।
+     একই GitHub অ্যাকাউন্ট কয়েকজন ব্যবহার করলেও এতে প্রত্যেককে আলাদা চেনা যায়। */
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  var MYID = ls('ad-editor-id') || (function () { var x = 'e' + Math.random().toString(36).slice(2, 10); ls('ad-editor-id', x); return x; })();
+  var GH = null;   // GitHub প্রোফাইল (ছবি ও ডিফল্ট নামের জন্য)
+  function ghProfile(u) {
+    if (GH || !u || !u.token || window.__AD_PRESENCE_ME) return Promise.resolve(GH);
+    return fetch('https://api.github.com/user', { headers: { Authorization: 'token ' + u.token } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { GH = j; return j; }).catch(function () { return null; });
+  }
+  function myName() { return ls('ad-editor-name') || (ME && (ME.name && ME.name !== 'Unknown' ? ME.name : '')) || (GH && (GH.name || GH.login)) || 'নাম দেওয়া হয়নি'; }
   var TAB = Math.random().toString(36).slice(2, 8), OTHERS = [], ME = null, CH = null, DETAIL = '', SINCE = Date.now(), dismissed = '';
 
   function myState() {
     var m = location.hash.match(/^#\/collections\/([^/?]+)(?:\/entries\/([^/?]+))?/) || [];
-    return { login: ME.login || ME.name, name: ME.name || ME.login, avatar: ME.avatar_url || '', coll: m[1] || '', entry: m[2] || '',
+    return { login: MYID, name: myName(), avatar: (GH && GH.avatar_url) || ME.avatar_url || '', coll: m[1] || '', entry: m[2] || '',
       detail: m[2] ? DETAIL : '', t: SINCE };
+  }
+
+  /* নাম জিজ্ঞেস করা — প্রথমবার নিজে থেকে, পরে তালিকার "নাম বদলান" থেকে */
+  function askName(first) {
+    if (document.getElementById('pr-name')) return;
+    var box = document.createElement('div');
+    box.id = 'pr-name';
+    box.innerHTML = '<form><label for="pr-name-in">' + (first ? 'প্যানেলে অন্যরা আপনাকে কোন নামে দেখবেন?' : 'আপনার নাম বদলান') + '</label>' +
+      '<input id="pr-name-in" maxlength="40" required placeholder="যেমন: আব্দুল্লাহ">' +
+      '<div><button type="submit">সংরক্ষণ</button><button type="button" data-x>পরে</button></div></form>';
+    document.body.appendChild(box);
+    var inp = box.querySelector('input'); inp.value = ls('ad-editor-name') || ''; inp.focus();
+    box.querySelector('[data-x]').onclick = function () { box.remove(); if (first) ls('ad-editor-name-skip', '1'); };
+    box.querySelector('form').onsubmit = function (e) {
+      e.preventDefault();
+      var v = inp.value.trim(); if (!v) return;
+      ls('ad-editor-name', v); box.remove(); track();
+    };
   }
 
   var ui = document.createElement('div');
@@ -159,7 +189,10 @@
   document.body.appendChild(ui);
   var badge = ui.querySelector('#pr-badge'), btn = ui.querySelector('#pr-btn'), list = ui.querySelector('#pr-list'), warn = ui.querySelector('#pr-warn');
   btn.onclick = function (e) { e.stopPropagation(); var o = badge.classList.toggle('open'); btn.setAttribute('aria-expanded', o); };
-  document.addEventListener('click', function (e) { if (!badge.contains(e.target)) { badge.classList.remove('open'); btn.setAttribute('aria-expanded', false); } });
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-rename]')) { badge.classList.remove('open'); askName(false); return; }
+    if (!badge.contains(e.target)) { badge.classList.remove('open'); btn.setAttribute('aria-expanded', false); }
+  });
 
   function av(u, cls) {
     var ini = String(u.name || '?').trim().slice(0, 1).toUpperCase();
@@ -178,7 +211,8 @@
     ui.querySelector('#pr-count').textContent = ppl.length ? 'এখন ' + bn(ppl.length + 1) + ' জন সক্রিয়' : 'শুধু আপনি সক্রিয়';
     list.innerHTML = ppl.map(function (u) {
       return '<div class="pr-row">' + av(u, 'pr-av pr-av--lg') + '<div><b>' + htmlEsc(u.name) + '</b><small>' + htmlEsc(whereText(u)) + ' · ' + sinceText(u.t) + '</small></div></div>';
-    }).join('') + '<div class="pr-row">' + av(meState, 'pr-av pr-av--lg') + '<div><b>আপনি</b><small>' + htmlEsc(whereText(meState)) + '</small></div></div>';
+    }).join('') + '<div class="pr-row">' + av(meState, 'pr-av pr-av--lg') + '<div><b>আপনি (' + htmlEsc(meState.name) + ')</b><small>' + htmlEsc(whereText(meState)) + '</small>' +
+      '<button type="button" class="pr-rename" data-rename>✎ নাম বদলান</button></div></div>';
 
     // মেনু ও ফাইল-কার্ডে "✎ নাম"
     PRES = {};
@@ -210,9 +244,13 @@
   function connect() {
     ME = decapUser();
     if (!ME) { renderPresence(); return setTimeout(connect, 3000); }    // লগইনের অপেক্ষা
-    var key = (ME.login || ME.name) + ':' + TAB;
+    ghProfile(ME).then(function () {
+      track();
+      if (!ls('ad-editor-name') && !ls('ad-editor-name-skip') && !window.__AD_PRESENCE_ME) askName(true);
+    });
+    var key = MYID + ':' + TAB;
     var onSync = function (all) {
-      OTHERS = all.filter(function (s) { return s && s.login && s.login !== (ME.login || ME.name); });
+      OTHERS = all.filter(function (s) { return s && s.login && s.login !== MYID; });
       renderPresence();
     };
     if (window.__AD_PRESENCE_MOCK) { CH = window.__AD_PRESENCE_MOCK(onSync); track(); return; }   // শুধু প্রিভিউর জন্য
