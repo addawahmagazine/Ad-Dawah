@@ -1,0 +1,92 @@
+/* আদ দাওয়াহ — সম্পাদনা প্যানেলের বাড়তি নকশা */
+
+/* বাঁ পাশের মেনুতে লেবেলের নিচে ছোট গণনা */
+aside a[data-testid][href*="/collections/"]{flex-wrap:wrap;row-gap:0}
+aside a[data-testid][href*="/collections/"]::after{
+  flex-basis:100%;padding-inline-start:32px;margin-top:1px;font-size:12.5px;line-height:1.35;
+  color:#7b8594;font-weight:400;white-space:normal}
+/* মেনুকে তিন ভাগে আলাদা করা: কনটেন্ট | পাতা ও তালিকা | যোগাযোগ */
+/* Decap-এর মেনু-লিংকে z-index:-1 থাকে; position দিলে লিংক তালিকার নিচে চাপা পড়ে, তাই z-index:0 */
+aside a[data-testid="pages"], aside a[data-testid="settings"]{position:relative;z-index:0;margin-top:14px}
+aside a[data-testid="pages"]::before, aside a[data-testid="settings"]::before{
+  content:"";position:absolute;left:16px;right:16px;top:-8px;border-top:1px solid #dfe3eb}
+
+/* সংগ্রহের ভেতরের ফাইল-কার্ডে গণনা */
+a[href*="/entries/"]::after{display:block;margin-top:6px;font-size:13px;color:#7b8594;font-weight:400}
+/* গ্রিড ভিউতে কার্ডের ভেতরের লেখার সঙ্গে মিলিয়ে */
+a[class*="GridCard"][href*="/entries/"]::after{padding:0 22px 16px}
+
+/* ---------------- লেখা বাছাই ---------------- */
+.ab{background:#fafbfc;border:1px solid #dfe3eb;border-radius:6px;overflow:hidden}
+.ab-head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-bottom:1px solid #dfe3eb}
+.ab-total{flex:1;font-weight:600;color:#313d3e;font-size:15px}
+.ab-crumbs{padding:8px 14px 0;font-size:14px;color:#5c6675}
+.ab-link{background:none;border:0;color:#3a69c7;cursor:pointer;font-size:14px;padding:4px 2px}
+.ab-search{display:block;width:calc(100% - 24px);margin:10px 12px 4px;padding:9px 12px;border:1px solid #dfe3eb;border-radius:5px;font-size:15px;background:#fff;box-sizing:border-box}
+.ab-list{padding:0 8px 10px}
+.ab-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:1px solid #edf0f4;border-radius:6px;
+  padding:11px 14px;margin-top:7px;cursor:pointer;font-size:16px;color:#313d3e;line-height:1.4}
+.ab-row:hover,.ab-row:focus-visible{border-color:#3a69c7;outline:none}
+.ab-row small{display:block;color:#7b8594;font-size:12.5px;margin-top:1px}
+.ab-web{background:#f3f6fd}
+.ab-l{flex:1;min-width:0}
+.ab-n{color:#5c6675;font-size:13px;white-space:nowrap;background:#eef1f5;border-radius:20px;padding:2px 10px}
+.ab-chev{color:#3a69c7;font-size:20px;line-height:1}
+.ab-empty{padding:18px;text-align:center;color:#7b8594}
+.ab-wrap{display:block}
+.ab-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;margin-bottom:8px;background:#e8f5fe;border-radius:6px}
+.ab-back{background:#fff;border:1px solid #cfd9ec;color:#3a69c7;border-radius:5px;padding:5px 12px;cursor:pointer;font-size:14px}
+.ab-title{flex:1;font-weight:600;color:#313d3e;min-width:140px}
+.ab-tip{margin:0 0 10px;font-size:13px;color:#5c6675}
+.ab-bad{color:#a4400d;background:#fff1e6;border-radius:20px;padding:2px 10px;font-size:12.5px;white-space:nowrap}
+
+/* ---------------- ইনফোগ্রাফিকের লেখা বাছাই ---------------- */
+.ap-box{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ap-sel{flex:1;min-width:180px;line-height:1.45}
+.ap-sel small{display:block;color:#7b8594;font-size:12.5px}
+.ap-sel span{font-size:15px;color:#313d3e}
+.ap-ph{flex:1;color:#9aa3af}
+.ap-actions{display:flex;gap:8px}
+.ap-btn{border:1px solid #dfe3eb;background:#fff;color:#3a69c7;border-radius:5px;padding:6px 14px;cursor:pointer;font-size:14px}
+.ap-btn:hover{background:#e8f5fe}
+.ap-clear{color:#b3261e}
+.ap-panel{margin-top:12px;border:1px solid #dfe3eb;border-radius:6px;background:#fafbfc;overflow:hidden}
+.ap-head{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #dfe3eb;background:#fff;font-size:13.5px}
+.ap-crumbs{flex:1;color:#5c6675;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ap-x{color:#7b8594}
+.ap-list{max-height:340px;overflow-y:auto}
+.ap-on{border-color:#3a69c7;background:#e8f5fe}
+.ap-tick{color:#3a69c7;font-weight:600}
+
+/* ---------------- কে কে সক্রিয় ---------------- */
+#pr-badge{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10000}
+#pr-btn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dfe3eb;border-radius:18px;padding:4px 12px 4px 6px;cursor:pointer;font-size:14px;color:#313d3e;box-shadow:0 1px 3px rgba(68,74,87,.12)}
+#pr-btn:focus-visible{outline:2px solid #3a69c7;outline-offset:2px}
+.pr-live{width:8px;height:8px;border-radius:50%;background:#1da65a;flex:none}
+.pr-dots{display:flex}
+.pr-av{width:24px;height:24px;border-radius:50%;border:2px solid #fff;margin-left:-6px;background:#3a69c7;color:#fff;font-size:12px;font-weight:600;display:inline-grid;place-items:center;object-fit:cover;flex:none}
+.pr-dots .pr-av:first-child{margin-left:0}
+.pr-av--lg{width:30px;height:30px;margin:0}
+#pr-list{display:none;position:absolute;top:40px;left:50%;transform:translateX(-50%);width:300px;background:#fff;border:1px solid #dfe3eb;border-radius:8px;box-shadow:0 6px 20px rgba(68,74,87,.18);padding:6px 0}
+#pr-badge.open #pr-list{display:block}
+.pr-row{display:flex;gap:10px;align-items:center;padding:8px 14px;font-size:14px;line-height:1.4;color:#313d3e}
+.pr-row small{display:block;color:#7b8594;font-size:12.5px}
+#pr-warn{position:fixed;top:72px;left:16px;z-index:299;max-width:640px;width:calc(100% - 32px);background:#fff6d6;border:1px solid #f0d27a;color:#6b5200;
+  border-radius:6px;padding:10px 14px;font-size:14.5px;line-height:1.55;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+#pr-warn{z-index:9999}
+#pr-warn button{float:right;background:none;border:0;color:#6b5200;cursor:pointer;font-size:14px;margin-left:8px}
+@media (max-width:760px){
+  #pr-badge{top:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:14px;transform:none}
+  #pr-list{top:auto;bottom:40px;left:0;transform:none}
+}
+
+/* নিজের নাম দেওয়া */
+.pr-rename{display:block;background:none;border:0;padding:2px 0 0;color:#3a69c7;cursor:pointer;font-size:12.5px}
+#pr-name{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:10001;background:#fff;border:1px solid #dfe3eb;border-radius:8px;
+  box-shadow:0 10px 30px rgba(68,74,87,.25);padding:16px;width:min(340px,calc(100% - 24px))}
+#pr-name label{display:block;font-size:15px;font-weight:600;color:#313d3e;margin-bottom:10px}
+#pr-name input{width:100%;box-sizing:border-box;border:1px solid #dfe3eb;border-radius:5px;padding:9px 11px;font-size:15px}
+#pr-name input:focus{outline:2px solid #3a69c7;outline-offset:0}
+#pr-name div{display:flex;gap:8px;margin-top:12px}
+#pr-name button{border:1px solid #dfe3eb;background:#fff;color:#313d3e;border-radius:5px;padding:7px 14px;cursor:pointer;font-size:14px}
+#pr-name button[type=submit]{background:#3a69c7;border-color:#3a69c7;color:#fff}
