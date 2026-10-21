@@ -14,8 +14,6 @@ on:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    permissions:
-      actions: write   # নিচের শেষ ধাপের জন্য
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,8 +32,3 @@ jobs:
             -H "apikey: $KEY")
           echo "Supabase উত্তর দিয়েছে: $STATUS"
           [ "$STATUS" -lt 400 ] || exit 1
-
-      # ৬০ দিন commit না হলেও GitHub যেন এই কাজটা বন্ধ না করে —
-      # প্রতিবার নিজেকে আবার "চালু" করে টাইমার নতুন করে শুরু করে। কোনো commit করে না।
-      - name: Keep this workflow enabled
-        uses: gautamkrishnar/keepalive-workflow@v2
