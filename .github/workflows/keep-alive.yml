@@ -1,0 +1,41 @@
+# আদ দাওয়াহ — Supabase keep-alive
+# ফ্রি প্ল্যানে ৭ দিন কোনো কার্যকলাপ না থাকলে Supabase প্রজেক্ট pause করে দেয়।
+# এই কাজটা প্রতি ৩ দিনে একবার ডাটাবেসে ছোট্ট একটা অনুরোধ পাঠায়, যাতে প্রজেক্ট সক্রিয় থাকে।
+# GitHub Actions-এ চলে, Netlify-এর deploy credit খরচ হয় না।
+# ঠিকানা ও key সাইটের assets/config.js থেকেই নেয় — আলাদা কিছু বসাতে হবে না।
+
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: "17 3 */3 * *"   # প্রতি ৩ দিনে, বাংলাদেশ সময় সকাল ৯:১৭
+  workflow_dispatch:          # Actions ট্যাব থেকে হাতেও চালানো যাবে
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write   # নিচের শেষ ধাপের জন্য
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: assets/config.js
+          sparse-checkout-cone-mode: false
+
+      - name: Ping Supabase
+        run: |
+          URL=$(grep -oE 'url: *"[^"]+"' assets/config.js | sed -E 's/.*"(.*)"/\1/')
+          KEY=$(grep -oE 'key: *"[^"]+"' assets/config.js | sed -E 's/.*"(.*)"/\1/')
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "config.js-এ Supabase url/key পাওয়া যায়নি"; exit 1
+          fi
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$URL/rest/v1/article_stats?select=*&limit=1" \
+            -H "apikey: $KEY")
+          echo "Supabase উত্তর দিয়েছে: $STATUS"
+          [ "$STATUS" -lt 400 ] || exit 1
+
+      # ৬০ দিন commit না হলেও GitHub যেন এই কাজটা বন্ধ না করে —
+      # প্রতিবার নিজেকে আবার "চালু" করে টাইমার নতুন করে শুরু করে। কোনো commit করে না।
+      - name: Keep this workflow enabled
+        uses: gautamkrishnar/keepalive-workflow@v2
