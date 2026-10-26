@@ -947,6 +947,15 @@ html, body{overflow-x:hidden;overflow-x:clip;max-width:100%}
 .nav__sub a span{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
 .nav__sub a:hover span{color:var(--brand)}
 .nav__sub-empty{display:block;padding:9px 13px;font-size:14.5px;color:var(--muted)}
+/* সংখ্যা: নাম + "লেখা দেখুন" / "পিডিএফ পড়ুন" */
+.nav__iss{padding:8px 13px 10px;border-radius:var(--r-s)}
+.nav__iss+.nav__iss{border-top:1px dashed var(--line)}
+.nav__iss-h{margin:0 0 7px;font-size:15.5px;color:var(--text);line-height:1.4}
+.nav__iss-h span{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
+.nav__iss-acts{display:flex;gap:6px;flex-wrap:wrap}
+.nav__sub .nav__iss-acts a{display:inline-block;padding:4px 12px 3px;font-size:13.5px;border:1px solid var(--line);border-radius:var(--r-pill);color:var(--brand);background:var(--surface)}
+.nav__sub .nav__iss-acts a:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+[data-theme="dark"] .nav__sub .nav__iss-acts a:hover{color:#07130F}
 .nav__sub-all{border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
 .nav__sub-all a{font-size:14.5px;color:var(--brand)}
 
@@ -1032,3 +1041,9 @@ html, body{overflow-x:hidden;overflow-x:clip;max-width:100%}
 .issue__open--t:hover{color:var(--brand)}
 .issue__open:focus-visible{outline:2px solid var(--brand);outline-offset:4px;border-radius:6px}
 @media (prefers-reduced-motion:reduce){.issue__open .cover{transition:none}.issue__open:hover .cover{transform:none}}
+
+/* বোল্ড লেখা যেন সব কম্পিউটারে বোঝা যায়।
+   বাংলা ফন্টগুলোর আলাদা বোল্ড ফাইল নেই; কিছু কম্পিউটারে (বিশেষ করে যেখানে সুলাইমান লিপি
+   আগে থেকে ইনস্টল করা) ব্রাউজার নিজে বোল্ড বানায় না — তাই হালকা রেখা দিয়ে মোটা করা হলো। */
+.art__body strong,.art__body b,.qacc__a strong,.qna strong,.ansrow strong{
+  font-weight:700;font-synthesis:weight;-webkit-text-stroke:.03em currentColor;paint-order:stroke fill}

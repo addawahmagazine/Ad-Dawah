@@ -531,8 +531,14 @@ function renderFilters(){
 function renderNavIssues(){
   // মেনুতে শুধু সর্বশেষ ৩টি প্রকাশিত সংখ্যা, বাকিগুলো "সব সংখ্যা দেখুন"-এ
   const pub = ISSUES.filter(i => i.published).reverse().slice(0, 3);
-  const rows = pub.map(i =>
-    `<li><a href="#archive" data-navpdf="${i.id}">${esc(i.label)}<span>${esc(i.greg)}</span></a></li>`).join('');
+  // প্রতিটি সংখ্যার নিচে দুটি পথ: ওয়েবসাইটে লেখা দেখা, অথবা পিডিএফ
+  const rows = pub.map(i => `<li class="nav__iss">
+      <p class="nav__iss-h">${esc(i.label)}<span>${esc(i.greg)}</span></p>
+      <div class="nav__iss-acts">
+        <a href="#articles" data-issueread="${i.id}">লেখা দেখুন</a>
+        <a href="#archive" data-navpdf="${i.id}">পিডিএফ পড়ুন</a>
+      </div>
+    </li>`).join('');
   $('#navIssues').innerHTML =
     (rows || '<li><span class="nav__sub-empty">এখনও কোনো সংখ্যা প্রকাশিত হয়নি</span></li>') +
     `<li class="nav__sub-all"><a href="#archive">সব সংখ্যা দেখুন →</a></li>`;
@@ -1812,15 +1818,9 @@ function wireUI(){
       openPdf(np.dataset.navpdf);
       return;
     }
-    // সংখ্যার প্রচ্ছদ/শিরোনাম: না কেনা হলে সরাসরি কেনার ফর্ম, বাকি সব ক্ষেত্রে পিডিএফ অংশ
+    // সংখ্যার প্রচ্ছদ/শিরোনাম: "পিডিএফ" বোতামের মতোই পিডিএফ অংশ খুলবে
     const io = e.target.closest('[data-issueopen]');
-    if (io){
-      const iss = issueById(io.dataset.issueopen);
-      const st = (window.AD?.enabled && AD.user) ? AD.issueStatus(iss.id) : null;
-      if (isPaid(iss) && window.AD?.enabled && st !== 'approved' && st !== 'pending') openBuy(iss.id);
-      else openPdf(iss.id);
-      return;
-    }
+    if (io){ openPdf(io.dataset.issueopen); return; }
     const ip = e.target.closest('[data-issuepdf]');
     if (ip){ openPdf(ip.dataset.issuepdf); return; }
 
